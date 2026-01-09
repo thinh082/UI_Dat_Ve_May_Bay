@@ -1,0 +1,148 @@
+﻿<Window x:Class="UI_Dat_Ve_May_Bay.Nhapotp"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:UI_Dat_Ve_May_Bay"
+        mc:Ignorable="d"
+        Title="Quên Mật Khẩu - Parador" 
+        Height="600" 
+        Width="950"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="White">
+
+    <Window.Resources>
+        <!-- Button Style -->
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.9"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- OTP TextBox Style -->
+        <Style x:Key="OtpTextBox" TargetType="TextBox">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Width" Value="50"/>
+            <Setter Property="Height" Value="60"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="MaxLength" Value="1"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Panel - Branding -->
+        <Grid Grid.Column="0">
+            <!-- Background Image -->
+            <Image Source="pack://application:,,,/Images/airplane_ticket.png" 
+                   Stretch="UniformToFill"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+        </Grid>
+
+        <!-- Right Panel - OTP Form -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="60,40,60,40" MaxWidth="400">
+                <!-- Header -->
+                <TextBlock Text="Quên Mật Khẩu" 
+                          FontFamily="Segoe UI"
+                          FontSize="28"
+                          FontWeight="Bold"
+                          Foreground="#333333"
+                          Margin="0,20,0,10"
+                          HorizontalAlignment="Center"/>
+                <TextBlock Text="Vui lòng nhập mã OTP để xác thực" 
+                          FontFamily="Segoe UI"
+                          FontSize="14"
+                          Foreground="#666666"
+                          TextAlignment="Center"
+                          Margin="0,0,0,30"/>
+
+                <!-- OTP Inputs -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,30">
+                    <TextBox Style="{StaticResource OtpTextBox}" x:Name="txtOtp1" PreviewTextInput="Otp_PreviewTextInput"/>
+                    <TextBox Style="{StaticResource OtpTextBox}" x:Name="txtOtp2" PreviewTextInput="Otp_PreviewTextInput"/>
+                    <TextBox Style="{StaticResource OtpTextBox}" x:Name="txtOtp3" PreviewTextInput="Otp_PreviewTextInput"/>
+                    <TextBox Style="{StaticResource OtpTextBox}" x:Name="txtOtp4" PreviewTextInput="Otp_PreviewTextInput"/>
+                    <TextBox Style="{StaticResource OtpTextBox}" x:Name="txtOtp5" PreviewTextInput="Otp_PreviewTextInput"/>
+                    <TextBox Style="{StaticResource OtpTextBox}" x:Name="txtOtp6" PreviewTextInput="Otp_PreviewTextInput"/>
+                </StackPanel>
+
+                <!-- Confirm Button -->
+                <Button Content="Xác Nhận"
+                       Style="{StaticResource ModernButton}"
+                       Background="#0066FF"
+                       Foreground="White"
+                       FontSize="15"
+                       Height="45"
+                       Margin="0,0,0,15"
+                       Click="BtnConfirm_Click"/>
+
+                 <!-- Resend OTP Button -->
+                <Button Content="Gửi lại OTP"
+                       Style="{StaticResource ModernButton}"
+                       Background="#28A745"
+                       Foreground="White"
+                       FontSize="15"
+                       Height="45"
+                       Margin="0,0,0,20"
+                       Click="BtnResend_Click"/>
+
+                <!-- Navigation Links -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock FontFamily="Segoe UI" FontSize="14">
+                         <Hyperlink TextDecorations="None" 
+                                   Foreground="#0066CC"
+                                   FontWeight="SemiBold"
+                                   Click="BtnBack_Click">
+                             Quay lại đăng nhập
+                         </Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

@@ -8,4 +8,10 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+
+
+  <ItemGroup>
+    <Resource Include="Images\airplane_ticket.png" />
+  </ItemGroup>
+
 </Project>
