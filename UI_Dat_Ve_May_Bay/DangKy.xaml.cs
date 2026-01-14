@@ -19,6 +19,9 @@ namespace UI_Dat_Ve_May_Bay
     /// </summary>
     public partial class DangKy : Window
     {
+        private bool isPasswordVisible = false;
+        private bool isConfirmPasswordVisible = false;
+
         public DangKy()
         {
             InitializeComponent();
@@ -42,10 +45,22 @@ namespace UI_Dat_Ve_May_Bay
                 txtPassword.LostFocus += TxtPassword_LostFocus;
             }
 
+            if (txtPasswordVisible != null)
+            {
+                txtPasswordVisible.GotFocus += TxtPassword_GotFocus;
+                txtPasswordVisible.LostFocus += TxtPasswordVisible_LostFocus;
+            }
+
             if (txtConfirmPassword != null)
             {
                 txtConfirmPassword.GotFocus += TxtConfirmPassword_GotFocus;
                 txtConfirmPassword.LostFocus += TxtConfirmPassword_LostFocus;
+            }
+
+            if (txtConfirmPasswordVisible != null)
+            {
+                txtConfirmPasswordVisible.GotFocus += TxtConfirmPassword_GotFocus;
+                txtConfirmPasswordVisible.LostFocus += TxtConfirmPasswordVisible_LostFocus;
             }
         }
 
@@ -85,6 +100,12 @@ namespace UI_Dat_Ve_May_Bay
                 txtPasswordPlaceholder.Visibility = Visibility.Visible;
         }
 
+        private void TxtPasswordVisible_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (txtPasswordPlaceholder != null && string.IsNullOrEmpty(txtPasswordVisible.Text))
+                txtPasswordPlaceholder.Visibility = Visibility.Visible;
+        }
+
         private void TxtConfirmPassword_GotFocus(object sender, RoutedEventArgs e)
         {
             if (txtConfirmPasswordPlaceholder != null)
@@ -95,6 +116,76 @@ namespace UI_Dat_Ve_May_Bay
         {
             if (txtConfirmPasswordPlaceholder != null && string.IsNullOrEmpty(txtConfirmPassword.Password))
                 txtConfirmPasswordPlaceholder.Visibility = Visibility.Visible;
+        }
+
+        private void TxtConfirmPasswordVisible_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (txtConfirmPasswordPlaceholder != null && string.IsNullOrEmpty(txtConfirmPasswordVisible.Text))
+                txtConfirmPasswordPlaceholder.Visibility = Visibility.Visible;
+        }
+
+        private void BtnTogglePassword_Click(object sender, RoutedEventArgs e)
+        {
+            isPasswordVisible = !isPasswordVisible;
+
+            if (isPasswordVisible)
+            {
+                txtPasswordVisible.Text = txtPassword.Password;
+                txtPasswordVisible.Visibility = Visibility.Visible;
+                txtPassword.Visibility = Visibility.Collapsed;
+                btnTogglePassword.Content = "🙈";
+            }
+            else
+            {
+                txtPassword.Password = txtPasswordVisible.Text;
+                txtPassword.Visibility = Visibility.Visible;
+                txtPasswordVisible.Visibility = Visibility.Collapsed;
+                btnTogglePassword.Content = "👁";
+            }
+        }
+
+        private void BtnToggleConfirmPassword_Click(object sender, RoutedEventArgs e)
+        {
+            isConfirmPasswordVisible = !isConfirmPasswordVisible;
+
+            if (isConfirmPasswordVisible)
+            {
+                txtConfirmPasswordVisible.Text = txtConfirmPassword.Password;
+                txtConfirmPasswordVisible.Visibility = Visibility.Visible;
+                txtConfirmPassword.Visibility = Visibility.Collapsed;
+                btnToggleConfirmPassword.Content = "🙈";
+            }
+            else
+            {
+                txtConfirmPassword.Password = txtConfirmPasswordVisible.Text;
+                txtConfirmPassword.Visibility = Visibility.Visible;
+                txtConfirmPasswordVisible.Visibility = Visibility.Collapsed;
+                btnToggleConfirmPassword.Content = "👁";
+            }
+        }
+
+        private void TxtPassword_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(txtPassword.Password))
+                txtPasswordPlaceholder.Visibility = Visibility.Collapsed;
+        }
+
+        private void TxtPasswordVisible_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(txtPasswordVisible.Text))
+                txtPasswordPlaceholder.Visibility = Visibility.Collapsed;
+        }
+
+        private void TxtConfirmPassword_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(txtConfirmPassword.Password))
+                txtConfirmPasswordPlaceholder.Visibility = Visibility.Collapsed;
+        }
+
+        private void TxtConfirmPasswordVisible_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(txtConfirmPasswordVisible.Text))
+                txtConfirmPasswordPlaceholder.Visibility = Visibility.Collapsed;
         }
 
         private void BtnCancel_Click(object sender, RoutedEventArgs e)

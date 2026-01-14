@@ -49,5 +49,45 @@ namespace UI_Dat_Ve_May_Bay
             loginWindow.Show();
             this.Close();
         }
+
+        private void BtnSendOTP_Click(object sender, RoutedEventArgs e)
+        {
+            // Validate email input
+            if (string.IsNullOrWhiteSpace(txtEmail.Text))
+            {
+                MessageBox.Show("Vui lòng nhập địa chỉ Email!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtEmail.Focus();
+                return;
+            }
+
+            // Basic email format validation
+            if (!IsValidEmail(txtEmail.Text))
+            {
+                MessageBox.Show("Địa chỉ Email không hợp lệ!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtEmail.Focus();
+                return;
+            }
+
+            // If validation passes, proceed to OTP screen
+            MessageBox.Show("Mã OTP đã được gửi đến email của bạn!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            
+            // Navigate to OTP input screen
+            Nhapotp otpWindow = new Nhapotp();
+            otpWindow.Show();
+            this.Close();
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

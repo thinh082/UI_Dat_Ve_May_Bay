@@ -98,8 +98,10 @@
 
                 <!-- Email Input -->
                 <Grid Margin="0,0,0,15">
-                    <TextBox x:Name="txtEmail"
-                            Style="{StaticResource ModernTextBox}"
+                    <Border Background="White" 
+                            BorderBrush="#E0E0E0"
+                            BorderThickness="1"
+                            CornerRadius="8"
                             Height="45"/>
                     <TextBlock Text="✉" 
                               FontSize="16"
@@ -115,6 +117,15 @@
                               Margin="40,0,0,0"
                               IsHitTestVisible="False"
                               x:Name="txtEmailPlaceholder"/>
+                    <TextBox x:Name="txtEmail"
+                            FontFamily="Segoe UI"
+                            FontSize="14"
+                            Padding="40,12,12,12"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="#333333"
+                            VerticalContentAlignment="Center"
+                            Height="45"/>
                 </Grid>
 
                 <!-- Send OTP Button -->
@@ -124,7 +135,8 @@
                        Foreground="White"
                        FontSize="15"
                        Height="45"
-                       Margin="0,0,0,20"/>
+                       Margin="0,0,0,20"
+                       Click="BtnSendOTP_Click"/>
 
                 <!-- Navigation Links -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">

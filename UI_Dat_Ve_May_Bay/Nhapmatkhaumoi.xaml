@@ -118,9 +118,11 @@
 
                 <!-- New Password Input -->
                 <Grid Margin="0,0,0,15">
-                    <PasswordBox x:Name="txtNewPassword"
-                                Style="{StaticResource ModernPasswordBox}"
-                                Height="45"/>
+                    <Border Background="White" 
+                            BorderBrush="#E0E0E0"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Height="45"/>
                     <TextBlock Text="🔒" 
                               FontSize="16"
                               Foreground="#999999"
@@ -135,7 +137,29 @@
                               Margin="40,0,0,0"
                               IsHitTestVisible="False"
                               x:Name="txtNewPasswordPlaceholder"/>
-                    <Button Content="👁" 
+                    <PasswordBox x:Name="txtNewPassword"
+                                FontFamily="Segoe UI"
+                                FontSize="14"
+                                Padding="40,12,40,12"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="#333333"
+                                VerticalContentAlignment="Center"
+                                Height="45"
+                                PasswordChanged="TxtNewPassword_PasswordChanged"/>
+                    <TextBox x:Name="txtNewPasswordVisible"
+                            FontFamily="Segoe UI"
+                            FontSize="14"
+                            Padding="40,12,40,12"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="#333333"
+                            VerticalContentAlignment="Center"
+                            Height="45"
+                            Visibility="Collapsed"
+                            TextChanged="TxtNewPasswordVisible_TextChanged"/>
+                    <Button x:Name="btnToggleNewPassword"
+                           Content="👁" 
                            Background="Transparent"
                            BorderThickness="0"
                            FontSize="16"
@@ -145,14 +169,17 @@
                            Margin="0,0,10,0"
                            Cursor="Hand"
                            Width="30"
-                           Height="30"/>
+                           Height="30"
+                           Click="BtnToggleNewPassword_Click"/>
                 </Grid>
 
                 <!-- Confirm Password Input -->
                 <Grid Margin="0,0,0,30">
-                    <PasswordBox x:Name="txtConfirmPassword"
-                                Style="{StaticResource ModernPasswordBox}"
-                                Height="45"/>
+                    <Border Background="White" 
+                            BorderBrush="#E0E0E0"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Height="45"/>
                     <TextBlock Text="🔒" 
                               FontSize="16"
                               Foreground="#999999"
@@ -167,7 +194,29 @@
                               Margin="40,0,0,0"
                               IsHitTestVisible="False"
                               x:Name="txtConfirmPasswordPlaceholder"/>
-                    <Button Content="👁" 
+                    <PasswordBox x:Name="txtConfirmPassword"
+                                FontFamily="Segoe UI"
+                                FontSize="14"
+                                Padding="40,12,40,12"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="#333333"
+                                VerticalContentAlignment="Center"
+                                Height="45"
+                                PasswordChanged="TxtConfirmPassword_PasswordChanged"/>
+                    <TextBox x:Name="txtConfirmPasswordVisible"
+                            FontFamily="Segoe UI"
+                            FontSize="14"
+                            Padding="40,12,40,12"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="#333333"
+                            VerticalContentAlignment="Center"
+                            Height="45"
+                            Visibility="Collapsed"
+                            TextChanged="TxtConfirmPasswordVisible_TextChanged"/>
+                    <Button x:Name="btnToggleConfirmPassword"
+                           Content="👁" 
                            Background="Transparent"
                            BorderThickness="0"
                            FontSize="16"
@@ -177,7 +226,8 @@
                            Margin="0,0,10,0"
                            Cursor="Hand"
                            Width="30"
-                           Height="30"/>
+                           Height="30"
+                           Click="BtnToggleConfirmPassword_Click"/>
                 </Grid>
 
                 <!-- Confirm Button -->

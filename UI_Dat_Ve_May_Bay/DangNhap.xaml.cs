@@ -19,6 +19,8 @@ namespace UI_Dat_Ve_May_Bay
     /// </summary>
     public partial class DangNhap : Window
     {
+        private bool isPasswordVisible = false;
+
         public DangNhap()
         {
             InitializeComponent();
@@ -28,6 +30,8 @@ namespace UI_Dat_Ve_May_Bay
             txtEmail.LostFocus += TxtEmail_LostFocus;
             txtPassword.GotFocus += TxtPassword_GotFocus;
             txtPassword.LostFocus += TxtPassword_LostFocus;
+            txtPasswordVisible.GotFocus += TxtPassword_GotFocus;
+            txtPasswordVisible.LostFocus += TxtPasswordVisible_LostFocus;
         }
 
         private void TxtEmail_GotFocus(object sender, RoutedEventArgs e)
@@ -52,6 +56,48 @@ namespace UI_Dat_Ve_May_Bay
         {
             if (txtPasswordPlaceholder != null && string.IsNullOrEmpty(txtPassword.Password))
                 txtPasswordPlaceholder.Visibility = Visibility.Visible;
+        }
+
+        private void TxtPasswordVisible_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (txtPasswordPlaceholder != null && string.IsNullOrEmpty(txtPasswordVisible.Text))
+                txtPasswordPlaceholder.Visibility = Visibility.Visible;
+        }
+
+        private void BtnTogglePassword_Click(object sender, RoutedEventArgs e)
+        {
+            isPasswordVisible = !isPasswordVisible;
+
+            if (isPasswordVisible)
+            {
+                // Show password as text
+                txtPasswordVisible.Text = txtPassword.Password;
+                txtPasswordVisible.Visibility = Visibility.Visible;
+                txtPassword.Visibility = Visibility.Collapsed;
+                btnTogglePassword.Content = "🙈"; // Closed eye
+            }
+            else
+            {
+                // Hide password
+                txtPassword.Password = txtPasswordVisible.Text;
+                txtPassword.Visibility = Visibility.Visible;
+                txtPasswordVisible.Visibility = Visibility.Collapsed;
+                btnTogglePassword.Content = "👁"; // Open eye
+            }
+        }
+
+        private void TxtPassword_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            // Hide placeholder when typing
+            if (!string.IsNullOrEmpty(txtPassword.Password))
+                txtPasswordPlaceholder.Visibility = Visibility.Collapsed;
+        }
+
+        private void TxtPasswordVisible_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Hide placeholder when typing
+            if (!string.IsNullOrEmpty(txtPasswordVisible.Text))
+                txtPasswordPlaceholder.Visibility = Visibility.Collapsed;
         }
 
         private void BtnRegister_Click(object sender, RoutedEventArgs e)
