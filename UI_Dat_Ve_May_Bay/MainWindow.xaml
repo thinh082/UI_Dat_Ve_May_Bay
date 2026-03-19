@@ -1,12 +1,104 @@
 ﻿<Window x:Class="UI_Dat_Ve_May_Bay.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:UI_Dat_Ve_May_Bay"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        xmlns:vm="clr-namespace:UI_Dat_Ve_May_Bay.ViewModels"
+        xmlns:views="clr-namespace:UI_Dat_Ve_May_Bay.Views"
+        Title="UI Đặt Vé Máy Bay" Height="720" Width="1100"
+        WindowStartupLocation="CenterScreen"
+        Background="#FFF8FAFC">
+
+    <!--
+      ✅ KHÔNG set DataContext bằng XAML.
+      MainViewModel cần ApiClient + TokenStore (inject từ App.xaml.cs).
+      Nếu bạn set ở đây sẽ dính lỗi: MainViewModel is not usable as an object element.
+    -->
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- Map ViewModel -> View -->
+        <DataTemplate DataType="{x:Type vm:HomeViewModel}">
+            <views:HomeView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:NotificationViewModel}">
+            <views:NotificationView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:VoucherViewModel}">
+            <views:VoucherView/>
+        </DataTemplate>
+
+
+        <DataTemplate DataType="{x:Type vm:ProfileViewModel}">
+            <views:ProfileView/>
+        </DataTemplate>
+
+        <!-- Auth -->
+        <DataTemplate DataType="{x:Type vm:AuthViewModel}">
+            <views:AuthView/>
+        </DataTemplate>
+
+        <!-- Flights -->
+        <DataTemplate DataType="{x:Type vm:FlightViewModel}">
+            <views:FlightView/>
+        </DataTemplate>
+
+        <!-- Booking -->
+        <DataTemplate DataType="{x:Type vm:BookingViewModel}">
+            <views:BookingView/>
+        </DataTemplate>
+    </Window.Resources>
+
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="64"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOP NAV (ẩn khi đang ở Auth) -->
+        <Border Grid.Row="0"
+                Background="White"
+                BorderBrush="#FFE5E7EB"
+                BorderThickness="0,0,0,1"
+                Visibility="{Binding IsAppScreen, Converter={StaticResource BoolToVis}}">
+            <DockPanel LastChildFill="True" Margin="16,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" DockPanel.Dock="Left">
+                    <TextBlock Text="✈ UI Đặt Vé Máy Bay" FontSize="18" FontWeight="Bold" Margin="0,0,14,0"/>
+                    <TextBlock Text="{Binding CurrentTabName}" Foreground="#FF6B7280" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" DockPanel.Dock="Right">
+                    <Button Style="{StaticResource TopNavButtonStyle}"
+                            Content="🏠 Home"
+                            Command="{Binding GoHomeCommand}"/>
+
+                    <Button Style="{StaticResource TopNavButtonStyle}"
+                            Content="🔔 Thông báo"
+                            Command="{Binding GoNotificationCommand}"/>
+
+                    <Button Style="{StaticResource TopNavButtonStyle}"
+                            Content="⭐ Voucher"
+                            Command="{Binding GoVoucherCommand}"/>
+
+                    <Button Style="{StaticResource TopNavButtonStyle}"
+                            Content="👤 Hồ sơ"
+                            Command="{Binding GoProfileCommand}"/>
+
+                    <Button Style="{StaticResource TopNavButtonStyle}"
+                            Content="✈ Chuyến bay"
+                            Command="{Binding GoFlightCommand}"/>
+
+                    <Button Style="{StaticResource TopNavButtonStyle}"
+                            Content="🚪 Logout"
+                            Command="{Binding LogoutCommand}"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- CONTENT -->
+        <ContentControl Grid.Row="1"
+                        Margin="16"
+                        Content="{Binding CurrentViewModel}"/>
     </Grid>
 </Window>

@@ -1,9 +1,20 @@
 ﻿<Application x:Class="UI_Dat_Ve_May_Bay.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:UI_Dat_Ve_May_Bay"
-             StartupUri="MainWindow.xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
-         
+        <!-- Style button cho top nav -->
+        <Style x:Key="TopNavButtonStyle" TargetType="Button">
+            <Setter Property="Margin" Value="6,0"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Background" Value="#FFF3F4F6"/>
+            <Setter Property="BorderBrush" Value="#FFE5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+        </Style>
     </Application.Resources>
 </Application>

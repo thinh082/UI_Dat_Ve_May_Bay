@@ -1,0 +1,139 @@
+﻿<UserControl x:Class="UI_Dat_Ve_May_Bay.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="Transparent">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="8">
+
+            <!-- Header giống mobile -->
+            <Border Background="White" CornerRadius="12" Padding="16" BorderBrush="#FFE5E7EB" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="{Binding Greeting}" FontSize="14" Foreground="#FF6B7280"/>
+                    <TextBlock Text="{Binding Question}" FontSize="20" FontWeight="Bold" Margin="0,6,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Vé của tôi: Huỷ vé / Check-in (đúng flow, không nằm trong BookingView) -->
+            <TextBlock Text="Vé của tôi" FontSize="16" FontWeight="Bold" Margin="0,16,0,8"/>
+            <Border Background="White" CornerRadius="12" Padding="16" BorderBrush="#FFE5E7EB" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Foreground="#FF6B7280" TextWrapping="Wrap"
+                               Text="Nhập Mã đặt vé (idDatVe) trong email/QR để huỷ vé hoặc check-in."/>
+
+                    <TextBlock Margin="0,10,0,0" Text="Mã đặt vé (idDatVe)"/>
+                    <TextBox Margin="0,4,0,0" Text="{Binding BookingIdText, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Margin="0,10,0,0" Text="Lý do huỷ"/>
+                    <TextBox Margin="0,4,0,0" Text="{Binding CancelReason, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <Button Margin="0,10,0,0" Height="34" Content="Huỷ đặt vé" Command="{Binding CancelBookingCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                        <Setter Property="IsEnabled" Value="False"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Separator Margin="0,12,0,12"/>
+
+                    <TextBlock FontWeight="SemiBold" Text="Check-in"/>
+                    <TextBlock Foreground="#FF6B7280" TextWrapping="Wrap"
+                               Text="Nhập id (chuỗi BE yêu cầu) để check-in."/>
+                    <TextBox Margin="0,6,0,0" Text="{Binding CheckInIdText, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <Button Margin="0,10,0,0" Height="34" Content="Check-in" Command="{Binding CheckInCommand}">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                        <Setter Property="IsEnabled" Value="False"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <TextBlock Margin="0,10,0,0" Foreground="#166534" TextWrapping="Wrap" Text="{Binding TicketInfo}"/>
+                    <TextBlock Margin="0,6,0,0" Foreground="#DC2626" TextWrapping="Wrap" Text="{Binding TicketError}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Danh mục -->
+            <TextBlock Text="Danh Mục" FontSize="16" FontWeight="Bold" Margin="0,16,0,8"/>
+            <StackPanel Orientation="Horizontal">
+                <Border Background="#FFEFF6FF" CornerRadius="14" Width="92" Height="92" Margin="0,0,12,0">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="✈" FontSize="24" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Vé máy bay" FontSize="12" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#FFFFF3E6" CornerRadius="14" Width="92" Height="92" Margin="0,0,12,0">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="🏨" FontSize="24" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Khách sạn" FontSize="12" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#FFFFE8E8" CornerRadius="14" Width="92" Height="92">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="🚗" FontSize="24" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Xe" FontSize="12" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Khách sạn -->
+            <TextBlock Text="Các khách sạn top tìm kiếm trong tuần!" FontSize="16" FontWeight="Bold" Margin="0,18,0,8"/>
+            <StackPanel Orientation="Horizontal">
+                <Border Background="White" CornerRadius="12" Width="280" Padding="12" Margin="0,0,12,0"
+                        BorderBrush="#FFE5E7EB" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Hotel Marina Bay" FontWeight="Bold"/>
+                        <TextBlock Text="Đà Nẵng" Foreground="#FF6B7280" Margin="0,4,0,0"/>
+                        <TextBlock Text="1.200.000đ/đêm" Foreground="#FF2563EB" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="12" Width="280" Padding="12"
+                        BorderBrush="#FFE5E7EB" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="The Reverie Saigon" FontWeight="Bold"/>
+                        <TextBlock Text="TP. HCM" Foreground="#FF6B7280" Margin="0,4,0,0"/>
+                        <TextBlock Text="3.500.000đ/đêm" Foreground="#FF2563EB" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Chuyến bay -->
+            <TextBlock Text="Các chuyến bay top tìm kiếm trong tuần!" FontSize="16" FontWeight="Bold" Margin="0,18,0,8"/>
+            <StackPanel Orientation="Horizontal">
+                <Border Background="White" CornerRadius="12" Width="320" Padding="12" Margin="0,0,12,0"
+                        BorderBrush="#FFE5E7EB" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Vietnam Airlines VN123" FontWeight="Bold"/>
+                        <TextBlock Text="Hà Nội (HAN) → TP. HCM (SGN)" Foreground="#FF6B7280" Margin="0,4,0,0"/>
+                        <TextBlock Text="08:30 - 10:40" Margin="0,8,0,0"/>
+                        <TextBlock Text="1.500.000đ" Foreground="#FFEF4444" FontWeight="Bold" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="12" Width="320" Padding="12"
+                        BorderBrush="#FFE5E7EB" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Bamboo Airways QH456" FontWeight="Bold"/>
+                        <TextBlock Text="Đà Nẵng (DAD) → TP. HCM (SGN)" Foreground="#FF6B7280" Margin="0,4,0,0"/>
+                        <TextBlock Text="13:00 - 14:25" Margin="0,8,0,0"/>
+                        <TextBlock Text="1.200.000đ" Foreground="#FFEF4444" FontWeight="Bold" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <Border Height="16" Background="Transparent"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
