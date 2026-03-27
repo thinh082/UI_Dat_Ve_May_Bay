@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Collections.ObjectModel;
@@ -20,6 +21,8 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
     public class BookingViewModel : ObservableObject
     {
         private readonly ApiClient _apiClient;
+        private readonly SemaphoreSlim _loadSeatsGate = new(1, 1);
+        private readonly SemaphoreSlim _loadVouchersGate = new(1, 1);
 
         // ===== BACKEND ENDPOINTS (KHÔNG SỬA BE) =====
         private const string EP_GET_SEATS = "/api/ChuyenBay/DanhSachGheTheoChuyenBay"; // POST
@@ -51,8 +54,50 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         public ObservableCollection<SeatRowVm> SeatRowsLoai4 { get; } = new();
 
         private readonly HashSet<long> _heldSeatIds = new();
+        private readonly HashSet<long> _myBookedSeatIds = new();
 
         public int SelectedSeatCount => _heldSeatIds.Count;
+
+        private string GetBookedSeatsFilePath()
+        {
+            var userId = _apiClient.GetUserIdFromToken() ?? "anonymous";
+            // Clean userId for filename
+            userId = string.Join("_", userId.Split(Path.GetInvalidFileNameChars()));
+            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UI_Dat_Ve_May_Bay");
+            Directory.CreateDirectory(dir);
+            return Path.Combine(dir, $"booked_seats_{userId}.json");
+        }
+
+        private void LoadMyBookedSeats()
+        {
+            _myBookedSeatIds.Clear();
+            try
+            {
+                var userId = _apiClient.GetUserIdFromToken();
+                if (string.IsNullOrWhiteSpace(userId) || userId == "anonymous") return;
+
+                var path = GetBookedSeatsFilePath();
+                if (!File.Exists(path)) return;
+                var json = File.ReadAllText(path);
+                var ids = JsonSerializer.Deserialize<List<long>>(json);
+                if (ids != null)
+                {
+                    foreach (var id in ids) _myBookedSeatIds.Add(id);
+                }
+            }
+            catch { }
+        }
+
+        private void SaveMyBookedSeats()
+        {
+            try
+            {
+                var path = GetBookedSeatsFilePath();
+                var json = JsonSerializer.Serialize(_myBookedSeatIds.ToList());
+                File.WriteAllText(path, json);
+            }
+            catch { }
+        }
 
         // ===== Voucher =====
         public ObservableCollection<VoucherItemVm> Vouchers { get; } = new();
@@ -139,11 +184,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         public AsyncRelayCommand BookCommand { get; }
         public RelayCommand BackCommand { get; }
 
-        // chặn load chồng (constructor + MainViewModel gọi Refresh)
-        private readonly SemaphoreSlim _loadSeatsGate = new(1, 1);
-        private readonly SemaphoreSlim _loadVouchersGate = new(1, 1);
-
-        public BookingViewModel(ApiClient apiClient, FlightViewModel.LichBayItemVm selectedSchedule)
+        public BookingViewModel(ApiClient apiClient, FlightViewModel.LichBayItemVm selectedSchedule, Action? goBack = null)
         {
             _apiClient = apiClient;
             SelectedSchedule = selectedSchedule;
@@ -176,9 +217,18 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             });
 
             BookCommand = new AsyncRelayCommand(BookAsync);
-            BackCommand = new RelayCommand(_ => { /* parent handle */ });
+            BackCommand = new RelayCommand(async _ =>
+            {
+                try
+                {
+                    await ReleaseAllHeldSeatsAsync();
+                }
+                catch { }
+                goBack?.Invoke();
+            });
 
             // auto-load (best-effort)
+            LoadMyBookedSeats();
             _ = LoadSeatsAsync();
             _ = LoadVouchersAsync();
         }
@@ -221,6 +271,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
                 _heldSeatIds.Add(seat.IdGheNgoi);
                 seat.IsSelected = true;
+                seat.IdTrangThai = 1; // Tạm thời đánh dấu là đã giữ để tránh flicker
 
                 RecalcTotals();
             }
@@ -258,6 +309,8 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 }
 
                 seat.IsSelected = false;
+                seat.IdTrangThai = 0; // Optimistic logic: mark as free locally
+
                 RecalcTotals();
             }
             catch (Exception ex)
@@ -305,6 +358,9 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 Error = "";
                 Info = "";
                 IsBusy = true;
+
+                LoadMyBookedSeats();
+                _heldSeatIds.Clear();
 
                 LoaiVe1Seats.Clear();
                 LoaiVe3Seats.Clear();
@@ -382,19 +438,28 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
         private SeatVm ToSeatVm(SeatDtoLite dto)
         {
+            var isHeld = _heldSeatIds.Contains(dto.IdGheNgoi);
+            var isBooked = _myBookedSeatIds.Contains(dto.IdGheNgoi);
+
             return new SeatVm
             {
                 IdGheNgoi = dto.IdGheNgoi,
                 SoGhe = dto.SoGhe ?? "",
                 IdTrangThai = dto.IdTrangThai,
-                IsSelected = _heldSeatIds.Contains(dto.IdGheNgoi)
+                IsBookedByMe = isBooked,
+                IsSelected = isHeld || isBooked
             };
         }
 
         private void MarkSelectedFromHeldIds()
         {
             foreach (var s in LoaiVe1Seats.Concat(LoaiVe3Seats).Concat(LoaiVe4Seats))
-                s.IsSelected = _heldSeatIds.Contains(s.IdGheNgoi);
+            {
+                var isHeld = _heldSeatIds.Contains(s.IdGheNgoi);
+                var isBooked = _myBookedSeatIds.Contains(s.IdGheNgoi);
+                s.IsBookedByMe = isBooked;
+                s.IsSelected = isHeld || isBooked;
+            }
         }
 
         // =========================================================
@@ -849,6 +914,10 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
                 Info = string.IsNullOrWhiteSpace(bizMsg) ? "Đặt vé thành công." : bizMsg;
 
+                // Save booked seats locally
+                foreach(var id in _heldSeatIds) _myBookedSeatIds.Add(id);
+                SaveMyBookedSeats();
+
                 _heldSeatIds.Clear();
                 await LoadSeatsAsync();
                 await LoadVouchersAsync();
@@ -1237,13 +1306,31 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         {
             public long IdGheNgoi { get; set; }
             public string SoGhe { get; set; } = "";
-            public int IdTrangThai { get; set; }
 
-            // ✅ BE: 0 = available. 1/2 = không chọn được.
-            public bool IsAvailable => IdTrangThai == 0;
+            private int _idTrangThai;
+            public int IdTrangThai 
+            { 
+                get => _idTrangThai; 
+                set { if (SetProperty(ref _idTrangThai, value)) OnPropertyChanged(nameof(IsAvailable)); }
+            }
+
+            private bool _isBookedByMe;
+            public bool IsBookedByMe 
+            { 
+                get => _isBookedByMe; 
+                set { if (SetProperty(ref _isBookedByMe, value)) OnPropertyChanged(nameof(IsAvailable)); }
+            }
+
+            // ✅ Enabled nếu là ghế trống (0) HOẶC là ghế đang giữ để đặt (IsSelected)
+            // NHƯNG nếu đã thanh toán thành công (IsBookedByMe) thì nên khóa lại.
+            public bool IsAvailable => (IdTrangThai == 0 || IsSelected) && !IsBookedByMe;
 
             private bool _isSelected;
-            public bool IsSelected { get => _isSelected; set => SetProperty(ref _isSelected, value); }
+            public bool IsSelected 
+            { 
+                get => _isSelected; 
+                set { if (SetProperty(ref _isSelected, value)) OnPropertyChanged(nameof(IsAvailable)); }
+            }
         }
 
         private class ParsedSeat

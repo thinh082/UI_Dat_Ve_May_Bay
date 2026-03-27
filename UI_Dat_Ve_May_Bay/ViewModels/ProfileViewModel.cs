@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -8,6 +8,8 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using System.IO;
+using System.Text.RegularExpressions;
 using UI_Dat_Ve_May_Bay.Api;
 using UI_Dat_Ve_May_Bay.Core;
 using UI_Dat_Ve_May_Bay.Services;
@@ -47,10 +49,29 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         public bool IsBusy { get => _isBusy; set => SetProperty(ref _isBusy, value); }
 
         private string _status = "Sẵn sàng";
-        public string Status { get => _status; set => SetProperty(ref _status, value); }
+        public string Status 
+        { 
+            get => _status; 
+            set 
+            { 
+                if (SetProperty(ref _status, value))
+                    OnPropertyChanged(nameof(HasStatus));
+            } 
+        }
 
         private string _error = "";
-        public string Error { get => _error; set => SetProperty(ref _error, value); }
+        public string Error 
+        { 
+            get => _error; 
+            set 
+            { 
+                if (SetProperty(ref _error, value))
+                    OnPropertyChanged(nameof(HasError));
+            } 
+        }
+
+        public bool HasStatus => !string.IsNullOrWhiteSpace(Status) && Status != "Sẵn sàng";
+        public bool HasError => !string.IsNullOrWhiteSpace(Error);
 
         private string _avatarUrl = "";
         public string AvatarUrl { get => _avatarUrl; set => SetProperty(ref _avatarUrl, value); }
@@ -69,20 +90,26 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         private string _soNha = "";
         public string SoNha { get => _soNha; set => SetProperty(ref _soNha, value); }
 
-        private int _gioiTinh;
-        public int GioiTinh { get => _gioiTinh; set => SetProperty(ref _gioiTinh, value); }
+        private string _gioiTinh = "";
+        public string GioiTinh { get => _gioiTinh; set { if (SetProperty(ref _gioiTinh, value)) OnPropertyChanged(nameof(GioiTinhText)); } }
 
         private string _idPhuong = "";
-        public string IdPhuong { get => _idPhuong; set => SetProperty(ref _idPhuong, value); }
+        public string IdPhuong { get => _idPhuong; set { if (SetProperty(ref _idPhuong, value)) OnPropertyChanged(nameof(PhuongText)); } }
 
         private string _idQuan = "";
-        public string IdQuan { get => _idQuan; set { if (SetProperty(ref _idQuan, value)) RefreshPhuongOptions(); } }
+        public string IdQuan { get => _idQuan; set { if (SetProperty(ref _idQuan, value)) { RefreshPhuongOptions(); OnPropertyChanged(nameof(QuanText)); } } }
 
         private string _idTinh = "";
-        public string IdTinh { get => _idTinh; set { if (SetProperty(ref _idTinh, value)) RefreshQuanOptions(); } }
+        public string IdTinh { get => _idTinh; set { if (SetProperty(ref _idTinh, value)) { RefreshQuanOptions(); OnPropertyChanged(nameof(TinhText)); } } }
 
         private string _idQuocTich = "";
-        public string IdQuocTich { get => _idQuocTich; set => SetProperty(ref _idQuocTich, value); }
+        public string IdQuocTich { get => _idQuocTich; set { if (SetProperty(ref _idQuocTich, value)) OnPropertyChanged(nameof(QuocTichText)); } }
+
+        public string GioiTinhText => GioiTinhOptions.FirstOrDefault(x => x.Id == GioiTinh)?.Ten ?? "";
+        public string QuocTichText => QuocTichOptions.FirstOrDefault(x => x.Id == IdQuocTich)?.Ten ?? "";
+        public string TinhText => TinhOptions.FirstOrDefault(x => x.Id == IdTinh)?.Ten ?? "";
+        public string QuanText => QuanOptionsAll.FirstOrDefault(x => x.Id == IdQuan)?.Ten ?? "";
+        public string PhuongText => PhuongOptionsAll.FirstOrDefault(x => x.Id == IdPhuong)?.Ten ?? "";
         #endregion
 
         #region Config dropdown data
@@ -90,6 +117,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         public ObservableCollection<ConfigOption> QuanOptionsAll { get; } = new();
         public ObservableCollection<ConfigOption> PhuongOptionsAll { get; } = new();
         public ObservableCollection<ConfigOption> QuocTichOptions { get; } = new();
+        public ObservableCollection<ConfigOption> GioiTinhOptions { get; } = new();
 
         public ObservableCollection<ConfigOption> QuanOptions { get; } = new();
         public ObservableCollection<ConfigOption> PhuongOptions { get; } = new();
@@ -245,10 +273,10 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                     Email = FirstNonEmpty(Email, GetString(data.Value, "Email"));
                     SoDienThoai = FirstNonEmpty(SoDienThoai, GetString(data.Value, "SoDienThoai"));
                     SoNha = GetString(data.Value, "SoNha");
-                    GioiTinh = GetInt(data.Value, "GioiTinh") ?? GioiTinh;
-                    IdPhuong = ToIdText(GetInt(data.Value, "IdPhuong"));
-                    IdQuan = ToIdText(GetInt(data.Value, "IdQuan"));
                     IdTinh = ToIdText(GetInt(data.Value, "IdTinh"));
+                    IdQuan = ToIdText(GetInt(data.Value, "IdQuan"));
+                    IdPhuong = ToIdText(GetInt(data.Value, "IdPhuong"));
+                    GioiTinh = ToIdText(GetInt(data.Value, "GioiTinh"));
                     IdQuocTich = ToIdText(GetInt(data.Value, "IdQuocTich"));
                     AvatarUrl = FirstNonEmpty(AvatarUrl, GetString(data.Value, "HinhAnh"));
                 }
@@ -291,21 +319,18 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
         private async Task LoadConfigListsAsync()
         {
-            // Gọi convert endpoint trước (nếu BE hỗ trợ) để sinh file json mới nhất
-            await TryCallNoThrow(HttpMethod.Get, "/api/Config/convert-tinh-to-json");
-            await TryCallNoThrow(HttpMethod.Get, "/api/Config/convert-quan-to-json");
-            await TryCallNoThrow(HttpMethod.Get, "/api/Config/convert-phuong-to-json");
-            await TryCallNoThrow(HttpMethod.Get, "/api/Config/convert-quocTinh");
-
+            // Bây giờ lấy dữ liệu từ folder local 'data' thay vì gọi BE
             var tinh = await LoadConfigJsonArrayAsync("Tinh.json");
             var quan = await LoadConfigJsonArrayAsync("Quan.json");
             var phuong = await LoadConfigJsonArrayAsync("Phuong.json");
             var quocTich = await LoadConfigJsonArrayAsync("QuocTich.json");
+            var gioiTinh = await LoadConfigJsonArrayAsync("GioiTinh.json");
 
             FillOptions(TinhOptions, tinh, "id", "ten", null);
             FillOptions(QuanOptionsAll, quan, "id", "ten", "idTinh");
             FillOptions(PhuongOptionsAll, phuong, "id", "ten", "idQuan");
             FillOptions(QuocTichOptions, quocTich, "id", "ten", null);
+            FillOptions(GioiTinhOptions, gioiTinh, "id", "ten", null);
 
             RefreshQuanOptions();
             RefreshPhuongOptions();
@@ -320,7 +345,9 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             OnPropertyChanged(nameof(NoQuocTichOptions));
 
             if (TinhOptions.Count > 0 || QuocTichOptions.Count > 0)
-                Status = "Đã tải danh mục tỉnh/quận/phường/quốc tịch";
+                Status = "Đã tải danh mục từ folder local 'data'";
+            else
+                Status = "CẢNH BÁO: Không tìm thấy dữ liệu trong folder 'data'. Hãy kiểm tra đường dẫn file.";
         }
 
         private void RefreshQuanOptions()
@@ -335,7 +362,9 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
             if (!string.IsNullOrWhiteSpace(IdQuan) && QuanOptions.All(x => x.Id != IdQuan))
             {
-                _idQuan = ""; OnPropertyChanged(nameof(IdQuan));
+                _idQuan = ""; 
+                OnPropertyChanged(nameof(IdQuan));
+                OnPropertyChanged(nameof(QuanText));
             }
             RefreshPhuongOptions();
             OnPropertyChanged(nameof(HasQuanOptions));
@@ -354,7 +383,9 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
             if (!string.IsNullOrWhiteSpace(IdPhuong) && PhuongOptions.All(x => x.Id != IdPhuong))
             {
-                _idPhuong = ""; OnPropertyChanged(nameof(IdPhuong));
+                _idPhuong = ""; 
+                OnPropertyChanged(nameof(IdPhuong));
+                OnPropertyChanged(nameof(PhuongText));
             }
             OnPropertyChanged(nameof(HasPhuongOptions));
             OnPropertyChanged(nameof(NoPhuongOptions));
@@ -372,33 +403,51 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
         private async Task<JsonElement[]> LoadConfigJsonArrayAsync(string fileName)
         {
-            var candidatePaths = new[]
+            try
             {
-                $"/Models/Config/data/{fileName}",
-                $"/models/config/data/{fileName}",
-                $"/Config/data/{fileName}",
-                $"/config/data/{fileName}",
-                $"/{fileName}"
-            };
-
-            foreach (var p in candidatePaths)
-            {
-                try
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                
+                // Các đường dẫn có thể chứa folder data
+                var candidates = new List<string>
                 {
-                    using var req = _apiClient.CreateRequest(HttpMethod.Get, p, attachAuth: false);
-                    using var res = await _apiClient.Http.SendAsync(req);
-                    if (!res.IsSuccessStatusCode) continue;
-                    var text = await res.Content.ReadAsStringAsync();
-                    if (string.IsNullOrWhiteSpace(text)) continue;
-                    using var doc = JsonDocument.Parse(text);
-                    if (doc.RootElement.ValueKind == JsonValueKind.Array)
-                        return doc.RootElement.EnumerateArray().Select(x => x.Clone()).ToArray();
+                    Path.Combine(baseDir, "data", fileName), // Trong bin (nếu có Copy to Output)
+                    Path.Combine(baseDir, "..", "..", "..", "data", fileName), // bin/Debug/netX.0 -> ProjectRoot
+                    Path.Combine(baseDir, "..", "..", "data", fileName), // bin/Debug -> ProjectRoot
+                    Path.Combine(Directory.GetCurrentDirectory(), "data", fileName), // Cwd
+                    Path.Combine(baseDir, fileName) // Trực tiếp trong bin
+                };
+
+                string? filePath = null;
+                foreach (var c in candidates)
+                {
+                    if (File.Exists(c))
+                    {
+                        filePath = c;
+                        break;
+                    }
                 }
-                catch { }
+
+                if (filePath == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Không tìm thấy file config: {fileName}");
+                    return Array.Empty<JsonElement>();
+                }
+
+                var text = await File.ReadAllTextAsync(filePath);
+                if (string.IsNullOrWhiteSpace(text)) return Array.Empty<JsonElement>();
+
+                using var doc = JsonDocument.Parse(text);
+                if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                    return doc.RootElement.EnumerateArray().Select(x => x.Clone()).ToArray();
+            }
+            catch (Exception ex)
+            {
+                Status = $"Lỗi load {fileName}: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine(Status);
             }
             return Array.Empty<JsonElement>();
         }
-
+    
         private void FillOptions(ObservableCollection<ConfigOption> target, JsonElement[] source, string idKey, string tenKey, string? parentKey)
         {
             target.Clear();
@@ -425,16 +474,24 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         {
             await RunSafe(async () =>
             {
-                ValidateRequire(TenKh, "Tên khách hàng");
-                ValidateRequire(Email, "Email");
+                ValidateRequire(TenKh, "Họ và tên");
+                ValidateRequire(Email, "Email liên hệ");
+                ValidateRequire(SoDienThoai, "Số điện thoại");
+                ValidatePhone(SoDienThoai);
+                ValidateRequire(GioiTinh, "Giới tính");
+                ValidateRequire(SoNha, "Số nhà / Đường");
+                ValidateRequire(IdTinh, "Tỉnh/TP");
+                ValidateRequire(IdQuan, "Quận/Huyện");
+                ValidateRequire(IdPhuong, "Phường/Xã");
+                ValidateRequire(IdQuocTich, "Quốc tịch");
 
                 var body = new
                 {
                     Email = Email.Trim(),
-                    SoDienThoai = NullIfEmpty(SoDienThoai),
+                    SoDienThoai = SoDienThoai.Trim(),
                     TenKh = TenKh.Trim(),
-                    SoNha = NullIfEmpty(SoNha),
-                    GioiTinh = GioiTinh,
+                    SoNha = SoNha.Trim(),
+                    GioiTinh = ParseNullableInt(GioiTinh),
                     IdPhuong = ParseNullableInt(IdPhuong),
                     IdQuan = ParseNullableInt(IdQuan),
                     IdTinh = ParseNullableInt(IdTinh),
@@ -453,12 +510,18 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         {
             await RunSafe(async () =>
             {
+                ValidateRequire(SoCccd, "Số CCCD / ID Card");
+                ValidateCccd(SoCccd);
+                ValidateRequire(TenTrenCccd, "Họ và tên trên CCCD");
+                ValidateRequire(NoiThuongTru, "Địa chỉ thường trú");
+                ValidateRequire(QueQuan, "Quê quán");
+
                 var body = new
                 {
-                    SoCCCD = NullIfEmpty(SoCccd),
-                    TenTrenCCCD = NullIfEmpty(TenTrenCccd),
-                    NoiThuongTru = NoiThuongTru ?? string.Empty,
-                    QueQuan = QueQuan ?? string.Empty
+                    SoCCCD = SoCccd.Trim(),
+                    TenTrenCCCD = TenTrenCccd.Trim(),
+                    NoiThuongTru = NoiThuongTru.Trim(),
+                    QueQuan = QueQuan.Trim()
                 };
 
                 var doc = await SendJsonAsync(HttpMethod.Post, "/api/KhachHang/CapNhatCCCD", body);
@@ -473,15 +536,24 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         {
             await RunSafe(async () =>
             {
+                ValidateRequire(SoPassport, "Số Hộ chiếu");
+                ValidatePassport(SoPassport);
+                ValidateRequire(TenTrenPassport, "Tên trên Hộ chiếu");
+                ValidateRequire(NoiCap, "Nơi cấp");
+                ValidateDate(NgayCap, "Ngày cấp");
+                ValidateDate(NgayHetHan, "Ngày hết hạn");
+                ValidateRequire(PassportQuocTich, "Quốc tịch (Passport)");
+                ValidateRequire(LoaiPassport, "Loại Passport");
+
                 var body = new
                 {
-                    SoPassport = NullIfEmpty(SoPassport),
-                    TenTrenPassport = NullIfEmpty(TenTrenPassport),
-                    NoiCap = NullIfEmpty(NoiCap),
+                    SoPassport = SoPassport.Trim(),
+                    TenTrenPassport = TenTrenPassport.Trim(),
+                    NoiCap = NoiCap.Trim(),
                     NgayCap = NgayCap,
                     NgayHetHan = NgayHetHan,
-                    QuocTich = NullIfEmpty(PassportQuocTich),
-                    LoaiPassport = NullIfEmpty(LoaiPassport),
+                    QuocTich = PassportQuocTich.Trim(),
+                    LoaiPassport = LoaiPassport.Trim(),
                     GhiChu = NullIfEmpty(GhiChuPassport)
                 };
 
@@ -508,6 +580,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             {
                 Error = ex.Message;
                 Status = "Có lỗi xảy ra";
+                MessageBox.Show(ex.Message, "Thông báo lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
@@ -551,7 +624,22 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
             try
             {
-                return JsonDocument.Parse(text);
+                var doc = JsonDocument.Parse(text);
+                var root = doc.RootElement;
+                if (root.ValueKind == JsonValueKind.Object)
+                {
+                    int? statusCode = GetInt(root, "statusCode", "StatusCode");
+                    if (statusCode.HasValue && statusCode.Value >= 400)
+                    {
+                        var msg = GetMessage(root, $"BE trả lỗi {statusCode.Value}.");
+                        if (msg.Contains("Không tìm thấy thông tin khách", StringComparison.OrdinalIgnoreCase))
+                        {
+                            msg = "Vui lòng cập nhật và lưu 'Thông tin cơ bản' trước khi thực hiện thao tác này.";
+                        }
+                        throw new Exception(msg);
+                    }
+                }
+                return doc;
             }
             catch (JsonException)
             {
@@ -672,6 +760,34 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new Exception($"{fieldName} không được để trống.");
+        }
+
+        private static void ValidateDate(DateTime? value, string fieldName)
+        {
+            if (!value.HasValue)
+                throw new Exception($"{fieldName} không được để trống.");
+        }
+
+        private static void ValidatePhone(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return;
+            if (!Regex.IsMatch(value, @"^\d{10}$"))
+                throw new Exception("Số điện thoại phải đủ 10 số.");
+        }
+
+        private static void ValidateCccd(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return;
+            if (!Regex.IsMatch(value, @"^\d{12}$"))
+                throw new Exception("Số CCCD phải đủ 12 số.");
+        }
+
+        private static void ValidatePassport(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return;
+            // Gồm 1 chữ cái đứng đầu và 7 số
+            if (!Regex.IsMatch(value, @"^[A-Z]\d{7}$", RegexOptions.IgnoreCase))
+                throw new Exception("Số hộ chiếu phải gồm 1 chữ cái và 7 số (VD: A1234567).");
         }
     }
 }

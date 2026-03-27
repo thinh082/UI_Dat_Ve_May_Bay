@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -132,8 +132,13 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         public bool IsLookupLoading
         {
             get => _isLookupLoading;
-            set => SetProperty(ref _isLookupLoading, value);
+            set
+            {
+                if (SetProperty(ref _isLookupLoading, value))
+                    OnPropertyChanged(nameof(IsLoadingLookups));
+            }
         }
+        public bool IsLoadingLookups => _isLookupLoading;
 
         private async Task LoadLookupsAsync()
         {
@@ -512,9 +517,21 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         public bool IsLoading { get => IsBusy; set => IsBusy = value; }
 
         private string _error = "";
-        public string Error { get => _error; set => SetProperty(ref _error, value); }
+        public string Error
+        {
+            get => _error;
+            set
+            {
+                if (SetProperty(ref _error, value))
+                    OnPropertyChanged(nameof(HasError));
+            }
+        }
+
+        public bool HasError => !string.IsNullOrWhiteSpace(Error);
+        public bool HasStatus => !string.IsNullOrWhiteSpace(SelectedSummary);
 
         public bool ShowEmptyState => !IsBusy && (FlightGroups == null || FlightGroups.Count == 0);
+        public bool NoResultsFound => ShowEmptyState && string.IsNullOrWhiteSpace(Error);
 
         // ========== Commands ==========
         public AsyncRelayCommand SearchCommand { get; }
@@ -642,6 +659,8 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             finally
             {
                 IsBusy = false;
+                OnPropertyChanged(nameof(ShowEmptyState));
+                OnPropertyChanged(nameof(NoResultsFound));
             }
         }
 

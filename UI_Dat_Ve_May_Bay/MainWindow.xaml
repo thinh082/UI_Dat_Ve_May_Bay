@@ -1,17 +1,11 @@
-﻿<Window x:Class="UI_Dat_Ve_May_Bay.MainWindow"
+<Window x:Class="UI_Dat_Ve_May_Bay.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:UI_Dat_Ve_May_Bay.ViewModels"
         xmlns:views="clr-namespace:UI_Dat_Ve_May_Bay.Views"
-        Title="UI Đặt Vé Máy Bay" Height="720" Width="1100"
+        Title="UI Đặt Vé Máy Bay" Height="800" Width="1200"
         WindowStartupLocation="CenterScreen"
-        Background="#FFF8FAFC">
-
-    <!--
-      ✅ KHÔNG set DataContext bằng XAML.
-      MainViewModel cần ApiClient + TokenStore (inject từ App.xaml.cs).
-      Nếu bạn set ở đây sẽ dính lỗi: MainViewModel is not usable as an object element.
-    -->
+        Background="#F8FAFC">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -20,85 +14,140 @@
         <DataTemplate DataType="{x:Type vm:HomeViewModel}">
             <views:HomeView/>
         </DataTemplate>
-
         <DataTemplate DataType="{x:Type vm:NotificationViewModel}">
             <views:NotificationView/>
         </DataTemplate>
-
         <DataTemplate DataType="{x:Type vm:VoucherViewModel}">
             <views:VoucherView/>
         </DataTemplate>
-
-
         <DataTemplate DataType="{x:Type vm:ProfileViewModel}">
             <views:ProfileView/>
         </DataTemplate>
-
-        <!-- Auth -->
         <DataTemplate DataType="{x:Type vm:AuthViewModel}">
             <views:AuthView/>
         </DataTemplate>
-
-        <!-- Flights -->
         <DataTemplate DataType="{x:Type vm:FlightViewModel}">
             <views:FlightView/>
         </DataTemplate>
-
-        <!-- Booking -->
         <DataTemplate DataType="{x:Type vm:BookingViewModel}">
             <views:BookingView/>
         </DataTemplate>
     </Window.Resources>
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="64"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- TOP NAV (ẩn khi đang ở Auth) -->
-        <Border Grid.Row="0"
-                Background="White"
-                BorderBrush="#FFE5E7EB"
-                BorderThickness="0,0,0,1"
+        <!-- SIDEBAR NAVIGATION -->
+        <Border Grid.Column="0"
+                Width="240"
+                Background="{StaticResource SidebarBg}"
                 Visibility="{Binding IsAppScreen, Converter={StaticResource BoolToVis}}">
-            <DockPanel LastChildFill="True" Margin="16,0">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" DockPanel.Dock="Left">
-                    <TextBlock Text="✈ UI Đặt Vé Máy Bay" FontSize="18" FontWeight="Bold" Margin="0,0,14,0"/>
-                    <TextBlock Text="{Binding CurrentTabName}" Foreground="#FF6B7280" VerticalAlignment="Center"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="120"/> <!-- Logo area -->
+                    <RowDefinition Height="*"/>   <!-- Nav buttons -->
+                    <RowDefinition Height="Auto"/> <!-- Bottom actions -->
+                </Grid.RowDefinitions>
+
+                <!-- Brand Logo Section -->
+                <StackPanel Grid.Row="0" VerticalAlignment="Center" Margin="24,0">
+                    <Grid>
+                        <Ellipse Fill="{StaticResource VnaGold}" Width="40" Height="40" HorizontalAlignment="Left" Opacity="0.2"/>
+                        <TextBlock Text="✈" FontSize="28" Foreground="{StaticResource VnaGold}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                    </Grid>
+                    <TextBlock Text="Đặt vé" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,8,0,0" />
+                    <TextBlock Text="Máy Bay" FontSize="9" FontWeight="SemiBold" Foreground="#BEE3F8" Opacity="0.7" Margin="2,0,0,0" />
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" DockPanel.Dock="Right">
-                    <Button Style="{StaticResource TopNavButtonStyle}"
-                            Content="🏠 Home"
-                            Command="{Binding GoHomeCommand}"/>
+                <!-- Nav Buttons -->
+                <StackPanel Grid.Row="1" Margin="0,10">
+                    <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding GoHomeCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🏠" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Trang chủ"/>
+                        </StackPanel>
+                    </Button>
 
-                    <Button Style="{StaticResource TopNavButtonStyle}"
-                            Content="🔔 Thông báo"
-                            Command="{Binding GoNotificationCommand}"/>
+                    <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding GoFlightCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="✈" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Tìm chuyến bay"/>
+                        </StackPanel>
+                    </Button>
 
-                    <Button Style="{StaticResource TopNavButtonStyle}"
-                            Content="⭐ Voucher"
-                            Command="{Binding GoVoucherCommand}"/>
+                    <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding GoNotificationCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔔" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Thông báo"/>
+                        </StackPanel>
+                    </Button>
 
-                    <Button Style="{StaticResource TopNavButtonStyle}"
-                            Content="👤 Hồ sơ"
-                            Command="{Binding GoProfileCommand}"/>
+                    <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding GoVoucherCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⭐" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Ưu đãi &amp; Voucher"/>
+                        </StackPanel>
+                    </Button>
 
-                    <Button Style="{StaticResource TopNavButtonStyle}"
-                            Content="✈ Chuyến bay"
-                            Command="{Binding GoFlightCommand}"/>
+                    <Border Height="1" Background="#15FFFFFF" Margin="24,16"/>
 
-                    <Button Style="{StaticResource TopNavButtonStyle}"
-                            Content="🚪 Logout"
-                            Command="{Binding LogoutCommand}"/>
+                    <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding GoProfileCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="👤" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Hồ sơ cá nhân"/>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
-            </DockPanel>
+
+                <!-- Bottom Sidebar Area (Logout) -->
+                <StackPanel Grid.Row="2" Margin="0,0,0,32">
+                    <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding LogoutCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🚪" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Đăng xuất"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <!-- CONTENT -->
-        <ContentControl Grid.Row="1"
-                        Margin="16"
-                        Content="{Binding CurrentViewModel}"/>
+        <!-- MAIN LAYOUT -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Top Bar when logged in -->
+                <RowDefinition Height="*"/>    <!-- Content Area -->
+            </Grid.RowDefinitions>
+
+            <!-- Top Header Bar (Only visible when logged in) -->
+            <Border Grid.Row="0" Background="White" Height="70" 
+                    Visibility="{Binding IsAppScreen, Converter={StaticResource BoolToVis}}" 
+                    BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.04" Color="Black"/>
+                </Border.Effect>
+                <DockPanel Margin="32,0">
+                    <StackPanel VerticalAlignment="Center" DockPanel.Dock="Left">
+                        <TextBlock Text="{Binding CurrentTabName}" FontSize="22" FontWeight="Bold" Foreground="#111827"/>
+                        <TextBlock Text="Chào mừng bạn quay trở lại hệ thống" FontSize="11" Foreground="#9CA3AF" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <!-- Profile Circle -->
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                        <Border Background="#F3F4F6" CornerRadius="20" Width="38" Height="38">
+                            <TextBlock Text="👤" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"/>
+                        </Border>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- AUTH SCREEN / MAIN CONTENT -->
+            <ContentControl Grid.Row="1"
+                            Content="{Binding CurrentViewModel}">
+                <!-- Hủy Margin mặc định của MainWindow cũ để các View tự control -->
+            </ContentControl>
+        </Grid>
     </Grid>
 </Window>

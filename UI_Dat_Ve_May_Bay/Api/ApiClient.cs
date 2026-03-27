@@ -1,4 +1,4 @@
-﻿// Api/ApiClient.cs
+// Api/ApiClient.cs
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -17,7 +17,7 @@ namespace UI_Dat_Ve_May_Bay.Api
         public string? Token { get; set; }
 
         // ✅ ctor rỗng để XAML/VM new ApiClient() không lỗi
-        public ApiClient() : this("http://localhost:5231") { }
+        public ApiClient() : this("https://localhost:7242") { }
 
         // ✅ ctor theo baseUrl (đỡ lỗi "required parameter baseUrl")
         public ApiClient(string baseUrl)
@@ -58,6 +58,58 @@ namespace UI_Dat_Ve_May_Bay.Api
             var json = JsonSerializer.Serialize(body);
             req.Content = new StringContent(json, Encoding.UTF8, "application/json");
             return req;
+        }
+
+        public string GetUserIdFromToken()
+        {
+            if (string.IsNullOrWhiteSpace(Token)) return "anonymous";
+            try
+            {
+                var parts = Token.Split('.');
+                if (parts.Length < 2) return "anonymous";
+                var payload = parts[1];
+                payload = payload.Replace('-', '+').Replace('_', '/');
+                while (payload.Length % 4 != 0) payload += "=";
+                var bytes = Convert.FromBase64String(payload);
+                var json = Encoding.UTF8.GetString(bytes);
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                // Priority list of claims (Common .NET schemas first for stability)
+                string[] claimNames = { 
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier",
+                    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+                    "sub", 
+                    "email", 
+                    "unique_name", 
+                    "nameid",
+                    "name",
+                    "Preferred_username"
+                };
+
+                foreach (var name in claimNames)
+                {
+                    if (root.TryGetProperty(name, out var prop))
+                    {
+                        var val = prop.GetString();
+                        if (!string.IsNullOrWhiteSpace(val)) return val;
+                    }
+                }
+
+                // Fallback: search all properties for something that looks like an ID/Email
+                foreach (var prop in root.EnumerateObject())
+                {
+                    if (prop.Name.Contains("name", StringComparison.OrdinalIgnoreCase) || 
+                        prop.Name.Contains("id", StringComparison.OrdinalIgnoreCase) ||
+                        prop.Name.Contains("email", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var val = prop.Value.GetString();
+                        if (!string.IsNullOrWhiteSpace(val)) return val;
+                    }
+                }
+            }
+            catch { }
+            return "anonymous";
         }
     }
 }

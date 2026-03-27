@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows;
@@ -43,8 +43,26 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         public string Status
         {
             get => _status;
-            set => SetProperty(ref _status, value);
+            set
+            {
+                if (SetProperty(ref _status, value))
+                    OnPropertyChanged(nameof(HasStatus));
+            }
         }
+
+        private string _error = "";
+        public string Error
+        {
+            get => _error;
+            set
+            {
+                if (SetProperty(ref _error, value))
+                    OnPropertyChanged(nameof(HasError));
+            }
+        }
+
+        public bool HasStatus => !string.IsNullOrWhiteSpace(Status) && Status != "Sẵn sàng.";
+        public bool HasError => !string.IsNullOrWhiteSpace(Error);
 
         public AsyncRelayCommand RefreshCommand { get; }
         public RelayCommand ViewDetailCommand { get; }
@@ -83,6 +101,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                     Notifications.Add(item);
 
                 Status = $"Tải xong: {Notifications.Count} thông báo.";
+                Error = "";
 
                 // reset detail khi reload
                 SelectedDetail = null;
@@ -90,7 +109,8 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             catch (Exception ex)
             {
                 Status = "Lỗi tải thông báo.";
-                MessageBox.Show(ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                Error = ex.Message;
+                // MessageBox.Show(ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -106,11 +126,12 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 SelectedDetail = detail;
 
                 Status = "Tải chi tiết xong.";
+                Error = "";
             }
             catch (Exception ex)
             {
                 Status = "Lỗi tải chi tiết.";
-                MessageBox.Show(ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                Error = ex.Message;
             }
         }
 
@@ -135,12 +156,13 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                     SelectedDetail = null;
 
                 Status = "Đã xóa. Đang tải lại...";
+                Error = "";
                 await LoadAsync();
             }
             catch (Exception ex)
             {
                 Status = "Lỗi xóa.";
-                MessageBox.Show(ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                Error = ex.Message;
             }
         }
     }

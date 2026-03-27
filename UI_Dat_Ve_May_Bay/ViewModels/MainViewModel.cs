@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using UI_Dat_Ve_May_Bay.Api;
 using UI_Dat_Ve_May_Bay.Core;
 using UI_Dat_Ve_May_Bay.Services;
@@ -8,7 +8,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
     public class MainViewModel : ObservableObject
     {
         public MainViewModel()
-            : this(new ApiClient("http://localhost:5231"), new TokenStore())
+            : this(new ApiClient("https://localhost:7242"), new TokenStore())
         { }
 
         private readonly ApiClient _apiClient;
@@ -143,7 +143,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 CurrentTabName = "Đăng nhập";
                 CurrentViewModel = _authVM ?? new object();
 
-                MessageBox.Show("Đã đăng xuất và xóa token.", "Logout",
+                MessageBox.Show("Đã đăng xuất thành công.", "Đăng xuất",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             });
 
@@ -184,9 +184,21 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         {
             if (selected is null) return;
 
+            // ✅ REUSE: Nếu đang có booking cho đúng chuyến bay này thì không tạo mới
+            if (_bookingVM != null && _bookingVM.SelectedSchedule.Id == selected.Id)
+            {
+                CurrentTabName = "Đặt vé";
+                CurrentViewModel = _bookingVM;
+                return;
+            }
+
             _bookingVM = new BookingViewModel(
                 _apiClient,
-                selected
+                selected,
+                () => {
+                    _bookingVM = null; // Xoá session khi nhấn Quay lại
+                    NavigateFlight();
+                }
             );
 
             CurrentTabName = "Đặt vé";
@@ -204,8 +216,13 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
         private void NavigateHome()
         {
-            // Nếu một flow khác (hoặc lỗi init) chỉ kịp Save token vào file nhưng chưa set _apiClient.Token,
-            // thì reload lại để đảm bảo trạng thái đăng nhập luôn đúng.
+            // Reset all sub-VMs before re-init for new session
+            _flightVM = null;
+            _bookingVM = null;
+            _notiVM = null;
+            _voucherVM = null;
+            _profileVM = null;
+
             ReloadTokenToApiClient();
 
             if (!EnsureLoggedIn(showMessage: false))

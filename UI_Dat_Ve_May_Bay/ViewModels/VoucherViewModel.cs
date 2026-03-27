@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,6 +13,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         private readonly VoucherApi _voucherApi;
 
         public ObservableCollection<VoucherDto> Vouchers { get; } = new();
+        private readonly List<VoucherDto> _cachedVouchers = new();
 
         private VoucherDto? _selectedVoucher;
         public VoucherDto? SelectedVoucher
@@ -39,8 +40,26 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         public string Status
         {
             get => _status;
-            set => SetProperty(ref _status, value);
+            set
+            {
+                if (SetProperty(ref _status, value))
+                    OnPropertyChanged(nameof(HasStatus));
+            }
         }
+
+        private string _error = "";
+        public string Error
+        {
+            get => _error;
+            set
+            {
+                if (SetProperty(ref _error, value))
+                    OnPropertyChanged(nameof(HasError));
+            }
+        }
+
+        public bool HasStatus => !string.IsNullOrWhiteSpace(Status);
+        public bool HasError => !string.IsNullOrWhiteSpace(Error);
 
         public AsyncRelayCommand LoadMyVouchersCommand { get; }
         public AsyncRelayCommand LoadAllVouchersCommand { get; }   // ✅ phải init
@@ -71,9 +90,15 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 Vouchers.Clear();
 
                 var list = await _voucherApi.LayToanBoPhieuGiamGiaAsync();
-                foreach (var v in list) Vouchers.Add(v);
+                _cachedVouchers.Clear();
+                foreach (var v in list)
+                {
+                    Vouchers.Add(v);
+                    _cachedVouchers.Add(v);
+                }
 
                 Status = Vouchers.Count == 0 ? "Không có voucher." : $"Đã tải {Vouchers.Count} voucher.";
+                Error = "";
             });
         }
 
@@ -85,9 +110,15 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 Vouchers.Clear();
 
                 var list = await _voucherApi.GetDanhSachPhieuGiamGiaAsync(); // ✅ API ALL
-                foreach (var v in list) Vouchers.Add(v);
+                _cachedVouchers.Clear();
+                foreach (var v in list)
+                {
+                    Vouchers.Add(v);
+                    _cachedVouchers.Add(v);
+                }
 
                 Status = Vouchers.Count == 0 ? "Không có voucher." : $"Đã tải {Vouchers.Count} voucher.";
+                Error = "";
             });
         }
 
@@ -102,12 +133,28 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 }
 
                 Status = "Đang tìm mã giảm giá...";
-                Vouchers.Clear();
+                var code = SearchCode.Trim();
 
-                var list = await _voucherApi.TimKiemMaGiamGiaAsync(SearchCode.Trim());
+                // 1. Thử lọc trong cache trước (cho nhanh và chính xác với những gì đang thấy)
+                var localMatches = _cachedVouchers.FindAll(v =>
+                    (v.MaGiamGia ?? "").Equals(code, StringComparison.OrdinalIgnoreCase));
+
+                if (localMatches.Count > 0)
+                {
+                    Vouchers.Clear();
+                    foreach (var m in localMatches) Vouchers.Add(m);
+                    Status = $"Tìm thấy {Vouchers.Count} voucher (local).";
+                    Error = "";
+                    return;
+                }
+
+                // 2. Nếu không thấy local, mới gọi API (tìm mã mới chưa tải)
+                Vouchers.Clear();
+                var list = await _voucherApi.TimKiemMaGiamGiaAsync(code);
                 foreach (var v in list) Vouchers.Add(v);
 
                 Status = Vouchers.Count == 0 ? "Không tìm thấy voucher." : $"Tìm thấy {Vouchers.Count} voucher.";
+                Error = "";
             });
         }
 
@@ -149,6 +196,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 foreach (var v in list) Vouchers.Add(v);
 
                 Status = Vouchers.Count == 0 ? "Không có chi tiết voucher." : $"Đã tải {Vouchers.Count} dòng chi tiết.";
+                Error = "";
             });
         }
 
@@ -162,7 +210,8 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             catch (Exception ex)
             {
                 Status = "Lỗi.";
-                MessageBox.Show(ex.Message, "Lỗi Voucher", MessageBoxButton.OK, MessageBoxImage.Error);
+                Error = ex.Message;
+                // MessageBox.Show(ex.Message, "Lỗi Voucher", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {

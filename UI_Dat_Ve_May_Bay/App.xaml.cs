@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.ExceptionServices;
@@ -61,7 +61,7 @@ namespace UI_Dat_Ve_May_Bay
 
                 var apiClient = new ApiClient
                 {
-                    BaseUrl = "http://localhost:5231"
+                    BaseUrl = "https://localhost:7242"
                 };
 
                 // nếu nghi thằng này gây throw -> comment tạm để test
