@@ -11,7 +11,7 @@ namespace UI_Dat_Ve_May_Bay.Api
     {
         public HttpClient Http { get; }
 
-        // ✅ cho phép set (đỡ lỗi "BaseUrl read only")
+        // ✅ cho phép set (đỡ lỗi "BaseUrl read only")//
         public string BaseUrl { get; set; }
 
         public string? Token { get; set; }
