@@ -17,7 +17,7 @@ namespace UI_Dat_Ve_May_Bay.Api
         public string? Token { get; set; }
 
         // ✅ ctor rỗng để XAML/VM new ApiClient() không lỗi
-        public ApiClient() : this("https://localhost:7242") { }
+        public ApiClient() : this("https://audrina-subultimate-ghostily.ngrok-free.dev") { }
 
         // ✅ ctor theo baseUrl (đỡ lỗi "required parameter baseUrl")
         public ApiClient(string baseUrl)

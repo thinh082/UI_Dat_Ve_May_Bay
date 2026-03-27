@@ -61,7 +61,7 @@ namespace UI_Dat_Ve_May_Bay
 
                 var apiClient = new ApiClient
                 {
-                    BaseUrl = "https://localhost:7242"
+                    BaseUrl = "https://audrina-subultimate-ghostily.ngrok-free.dev"
                 };
 
                 // nếu nghi thằng này gây throw -> comment tạm để test
