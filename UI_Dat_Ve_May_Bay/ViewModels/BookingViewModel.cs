@@ -23,6 +23,8 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         private readonly ApiClient _apiClient;
         private readonly SemaphoreSlim _loadSeatsGate = new(1, 1);
         private readonly SemaphoreSlim _loadVouchersGate = new(1, 1);
+        private DateTime _lastSeatInteractionUtc = DateTime.MinValue;
+        private static readonly TimeSpan AutoRefreshSeatInteractionCooldown = TimeSpan.FromSeconds(3);
 
         // ===== BACKEND ENDPOINTS (KHÔNG SỬA BE) =====
         private const string EP_GET_SEATS = "/api/ChuyenBay/DanhSachGheTheoChuyenBay"; // POST
@@ -175,6 +177,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
         // ===== Commands =====
         public AsyncRelayCommand RefreshSeatsCommand { get; }
+        public AsyncRelayCommand AutoRefreshSeatsCommand { get; }
         public AsyncRelayCommand LoadVouchersCommand { get; }
         public AsyncRelayCommand ApplyVoucherCommand { get; }
         public RelayCommand OpenPaymentLinkCommand { get; }
@@ -196,7 +199,8 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
             _selectedPayment = PaymentOptions.First();
 
-            RefreshSeatsCommand = new AsyncRelayCommand(LoadSeatsAsync);
+            RefreshSeatsCommand = new AsyncRelayCommand(ManualRefreshSeatsAsync);
+            AutoRefreshSeatsCommand = new AsyncRelayCommand(AutoRefreshSeatsAsync);
             LoadVouchersCommand = new AsyncRelayCommand(LoadVouchersAsync);
             ApplyVoucherCommand = new AsyncRelayCommand(FindAndApplyVoucherAsync);
 
@@ -229,8 +233,18 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
             // auto-load (best-effort)
             LoadMyBookedSeats();
-            _ = LoadSeatsAsync();
+            _ = ManualRefreshSeatsAsync();
             _ = LoadVouchersAsync();
+        }
+
+        private Task ManualRefreshSeatsAsync() => LoadSeatsAsync();
+
+        private async Task AutoRefreshSeatsAsync()
+        {
+            if (DateTime.UtcNow - _lastSeatInteractionUtc < AutoRefreshSeatInteractionCooldown)
+                return;
+
+            await LoadSeatsAsync();
         }
 
         // =========================================================
@@ -251,6 +265,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 Error = "";
                 Info = "";
                 IsBusy = true;
+                _lastSeatInteractionUtc = DateTime.UtcNow;
 
                 var payload = new
                 {
@@ -258,7 +273,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                     idGheNgoi = new[] { seat.IdGheNgoi }
                 };
 
-                var json = await SendAndReadAsync(HttpMethod.Post, EP_HOLD_SEATS, payload);
+                var json = await SendAndReadAsync(HttpMethod.Post, EP_HOLD_SEATS, payload, throwOnBusinessError: false);
 
                 // nếu BE trả list ghế fail (vừa bị người khác giữ)
                 if (TryParseFailedSeatIds(json, out var failed) && failed.Contains(seat.IdGheNgoi))
@@ -269,9 +284,18 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                     return;
                 }
 
+                var holdBusinessError = TryExtractBusinessError(json);
+                if (!string.IsNullOrWhiteSpace(holdBusinessError))
+                {
+                    seat.IsSelected = false;
+                    await LoadSeatsAsync();
+                    Info = holdBusinessError;
+                    return;
+                }
+
                 _heldSeatIds.Add(seat.IdGheNgoi);
                 seat.IsSelected = true;
-                seat.IdTrangThai = 1; // Tạm thời đánh dấu là đã giữ để tránh flicker
+                seat.IdTrangThai = 2; // Tạm thời đánh dấu là đang giữ để tránh flicker
 
                 RecalcTotals();
             }
@@ -295,6 +319,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 Error = "";
                 Info = "";
                 IsBusy = true;
+                _lastSeatInteractionUtc = DateTime.UtcNow;
 
                 if (_heldSeatIds.Contains(seat.IdGheNgoi))
                 {
@@ -360,8 +385,6 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 IsBusy = true;
 
                 LoadMyBookedSeats();
-                _heldSeatIds.Clear();
-
                 LoaiVe1Seats.Clear();
                 LoaiVe3Seats.Clear();
                 LoaiVe4Seats.Clear();
@@ -1077,7 +1100,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         // =========================================================
         // HTTP helper
         // =========================================================
-        private async Task<string> SendAndReadAsync(HttpMethod method, string url, object? body)
+        private async Task<string> SendAndReadAsync(HttpMethod method, string url, object? body, bool throwOnBusinessError = true)
         {
             var req = _apiClient.CreateRequest(method, url, true);
 
@@ -1104,6 +1127,13 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 throw new Exception(msg);
             }
 
+            if (throwOnBusinessError)
+            {
+                var businessError = TryExtractBusinessError(content);
+                if (!string.IsNullOrWhiteSpace(businessError))
+                    throw new Exception(businessError);
+            }
+
             return string.IsNullOrWhiteSpace(content) ? "{}" : content;
         }
 
@@ -1113,12 +1143,80 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             {
                 using var doc = JsonDocument.Parse(content);
                 if (doc.RootElement.ValueKind == JsonValueKind.Object &&
-                    (doc.RootElement.TryGetProperty("message", out var m) || doc.RootElement.TryGetProperty("Message", out m)) &&
+                    TryGetPropertyIgnoreCase(doc.RootElement, "message", out var m) &&
                     m.ValueKind == JsonValueKind.String)
                     return m.GetString();
                 return null;
             }
             catch { return null; }
+        }
+
+        private static string? TryExtractBusinessError(string content)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(content);
+                var root = doc.RootElement;
+                if (root.ValueKind != JsonValueKind.Object) return null;
+
+                if (!TryGetPropertyIgnoreCase(root, "statusCode", out var statusCodeEl))
+                    return null;
+
+                var isError = statusCodeEl.ValueKind switch
+                {
+                    JsonValueKind.Number => statusCodeEl.TryGetInt32(out var n) && n >= 400,
+                    JsonValueKind.False => true,
+                    JsonValueKind.True => false,
+                    JsonValueKind.String => ParseStatusCodeString(statusCodeEl.GetString()),
+                    _ => false
+                };
+
+                if (!isError) return null;
+
+                if (TryGetPropertyIgnoreCase(root, "message", out var msgEl) && msgEl.ValueKind == JsonValueKind.String)
+                {
+                    var message = msgEl.GetString();
+                    if (!string.IsNullOrWhiteSpace(message)) return message;
+                }
+
+                return "Backend trả về lỗi nghiệp vụ.";
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static bool ParseStatusCodeString(string? value)
+        {
+            var v = (value ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(v)) return false;
+
+            if (int.TryParse(v, out var number))
+                return number >= 400;
+
+            if (bool.TryParse(v, out var boolVal))
+                return !boolVal;
+
+            return false;
+        }
+
+        private static bool TryGetPropertyIgnoreCase(JsonElement obj, string name, out JsonElement value)
+        {
+            if (obj.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var p in obj.EnumerateObject())
+                {
+                    if (string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        value = p.Value;
+                        return true;
+                    }
+                }
+            }
+
+            value = default;
+            return false;
         }
 
         // =========================================================
@@ -1211,14 +1309,22 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
                 if (root.ValueKind == JsonValueKind.Object)
                 {
-                    if (root.TryGetProperty("failedSeatIds", out var fs) && fs.ValueKind == JsonValueKind.Array)
+                    var propNames = new[] { "failedSeatIds", "failedSeats", "FailedSeatIds", "FailedSeats" };
+                    foreach (var prop in propNames)
                     {
+                        if (!TryGetPropertyIgnoreCase(root, prop, out var fs) || fs.ValueKind != JsonValueKind.Array)
+                            continue;
+
                         foreach (var it in fs.EnumerateArray())
                         {
                             if (it.ValueKind == JsonValueKind.Number && it.TryGetInt64(out var n))
                                 failed.Add(n);
+                            else if (it.ValueKind == JsonValueKind.String && long.TryParse(it.GetString(), out var s))
+                                failed.Add(s);
                         }
-                        return true;
+
+                        if (failed.Count > 0)
+                            return true;
                     }
                 }
             }

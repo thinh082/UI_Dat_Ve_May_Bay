@@ -160,8 +160,10 @@ namespace UI_Dat_Ve_May_Bay.Views
         {
             if (DataContext is not BookingViewModel vm) return;
             if (vm.IsBusy) return;
+            if (vm.IsWaitingPayment) return;
 
-            vm.RefreshSeatsCommand.Execute(null);
+            if (vm.AutoRefreshSeatsCommand.CanExecute(null))
+                vm.AutoRefreshSeatsCommand.Execute(null);
             _autoRefreshTick++;
             if (_autoRefreshTick % 4 == 0)
             {
