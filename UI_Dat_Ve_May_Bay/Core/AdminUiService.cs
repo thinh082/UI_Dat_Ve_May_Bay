@@ -5,7 +5,7 @@ using System.Windows.Threading;
 namespace UI_Dat_Ve_May_Bay.Core
 {
     public class AdminToastMessage
-    {
+    {//
         public string Message { get; set; } = string.Empty;
         public string Type { get; set; } = "info";
     }
