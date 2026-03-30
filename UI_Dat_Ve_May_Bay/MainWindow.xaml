@@ -14,6 +14,9 @@
         <DataTemplate DataType="{x:Type vm:HomeViewModel}">
             <views:HomeView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:MyFlightsViewModel}">
+            <views:MyFlightsView/>
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:NotificationViewModel}">
             <views:NotificationView/>
         </DataTemplate>
@@ -75,6 +78,13 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="✈" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
                             <TextBlock Text="Tìm chuyến bay"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding GoMyFlightsCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🧳" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Chuyến bay của bạn"/>
                         </StackPanel>
                     </Button>
 

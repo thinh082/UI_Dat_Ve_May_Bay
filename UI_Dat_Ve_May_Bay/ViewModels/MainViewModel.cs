@@ -15,6 +15,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         private readonly TokenStore _tokenStore;
 
         private HomeViewModel? _homeVM;
+        private MyFlightsViewModel? _myFlightsVM;
         private NotificationViewModel? _notiVM;
         private VoucherViewModel? _voucherVM;
         private AuthViewModel? _authVM;
@@ -43,6 +44,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         public RelayCommand GoNotificationCommand { get; }
         public RelayCommand GoVoucherCommand { get; }
         public RelayCommand GoFlightCommand { get; }
+        public RelayCommand GoMyFlightsCommand { get; }
         public RelayCommand GoProfileCommand { get; }
 
         public RelayCommand LogoutCommand { get; }
@@ -121,6 +123,15 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 CurrentViewModel = _flightVM;
             });
 
+            GoMyFlightsCommand = new RelayCommand(() =>
+            {
+                if (!EnsureLoggedIn()) return;
+
+                _myFlightsVM ??= new MyFlightsViewModel(new DichVuApi(_apiClient), autoLoad: true);
+                CurrentTabName = "Chuyến bay của bạn";
+                CurrentViewModel = _myFlightsVM;
+            });
+
             GoProfileCommand = new RelayCommand(() =>
             {
                 if (!EnsureLoggedIn()) return;
@@ -138,6 +149,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 _voucherVM = null;
                 _flightVM = null;
                 _bookingVM = null;
+                _myFlightsVM = null;
                 _profileVM = null;
 
                 CurrentTabName = "Đăng nhập";
@@ -155,6 +167,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 _voucherVM = null;
                 _flightVM = null;
                 _bookingVM = null;
+                _myFlightsVM = null;
                 _profileVM = null;
 
                 MessageBox.Show("Đã xóa token. App sẽ quay về đăng nhập.", "Token cleared",
@@ -219,6 +232,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             // Reset all sub-VMs before re-init for new session
             _flightVM = null;
             _bookingVM = null;
+            _myFlightsVM = null;
             _notiVM = null;
             _voucherVM = null;
             _profileVM = null;

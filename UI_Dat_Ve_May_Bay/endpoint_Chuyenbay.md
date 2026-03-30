@@ -1,9 +1,48 @@
-### SERVCICES
+#### CONTROLLER
+[HttpPost("DanhSachGheTheoChuyenBay")]
+        public async Task<IActionResult> DanhSachGheTheoChuyenBay([FromQuery] long idLichBay, [FromQuery] long idTuyenBay)
+        {
+            var result = await _services.DanhSachGheTheoChuyenBay(idLichBay, idTuyenBay);
 
+            return Ok(result);
+        }
+        [HttpPost("SetTrangThaiGheNgoi")]
+        public async Task<IActionResult> SetTrangThaiGheNgoi([FromBody] SetGheNgoiModel setGhe)
+        {
+            // Lấy thông tin user từ JWT
+            var idTaiKhoanClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (idTaiKhoanClaim == null || !long.TryParse(idTaiKhoanClaim.Value, out long idTaiKhoan))
+            {
+                return Unauthorized(new { statusCode = 401, message = "Người dùng chưa đăng nhập hoặc token không hợp lệ" });
+            }
+            var result = await _services.SetGheNgoi(setGhe.idGheNgoi, idTaiKhoan, setGhe.idLichBay);
+            return Ok(result);
+        }
+        [HttpPost("ReleaseSeat")]
+        public async Task<IActionResult> ReleaseSeat([FromBody] SetGheNgoiModel model)
+        {
+            // Lấy thông tin user từ JWT
+            var idTaiKhoanClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (idTaiKhoanClaim == null || !long.TryParse(idTaiKhoanClaim.Value, out long idTaiKhoan))
+            {
+                return Unauthorized(new { statusCode = 401, message = "Người dùng chưa đăng nhập hoặc token không hợp lệ" });
+            }
+            var result = await _services.ReleaseSeat(
+                model.idGheNgoi, idTaiKhoan, model.idLichBay);
+
+            return Ok(result);
+        }
+        [HttpPost("HuyDatVe")]
+        public async Task<IActionResult> HuyDatVe([FromQuery] long idDatVe, [FromQuery] string lyDoHuy)
+        {
+            var result = await _services.HuyVe(idDatVe, lyDoHuy);
+            return Ok(result);
+        }
+### SERVICES
 public async Task<dynamic> DanhSachGheTheoChuyenBay(long IdLichBay,long IdChuyenBay)
-{
-if (IdLichBay <= 0)
-return new { statusCode = 500, message = "Dữ liệu không hợp lệ" };
+        {
+            if (IdLichBay <= 0)
+                return new { statusCode = 500, message = "Dữ liệu không hợp lệ" };
 
             string redisKey = $"FlightSeats:{IdLichBay}";
             List<GheNgoiDto> danhSachGhe;
@@ -54,7 +93,7 @@ return new { statusCode = 500, message = "Dữ liệu không hợp lệ" };
                     LoaiVe4 = gheLoai4
                 }
             };
-        }
+        }        
         public async Task<dynamic> SetGheNgoi(List<long> idGheNgoi, long idTaiKhoan, long idLichBay)
         {
             if (idGheNgoi == null || !idGheNgoi.Any() || idTaiKhoan <= 0)
@@ -108,7 +147,7 @@ return new { statusCode = 500, message = "Dữ liệu không hợp lệ" };
                     else
                     {
 
-                        seat.IdTrangThai = 2;
+                        seat.IdTrangThai = 2; 
                         await _redis.Db.HashSetAsync(redisHashKey, idGhe.ToString(), JsonSerializer.Serialize(seat));
 
                         lockedSeats.Add(idGhe);
@@ -139,7 +178,7 @@ return new { statusCode = 500, message = "Dữ liệu không hợp lệ" };
 
                 await _hub.Clients.Group($"Flight_{idLichBay}")
                 .SendAsync("ReceiveGheNgoiUpdate", new
-                {
+                { 
                     Seats = lockedSeats,
                     IdTrangThai = 2,
                     UserId = idTaiKhoan,
@@ -195,7 +234,7 @@ return new { statusCode = 500, message = "Dữ liệu không hợp lệ" };
 
                     var holdJson = await _redis.Db.StringGetAsync(lockKey);
                     if (string.IsNullOrEmpty(holdJson))
-                        continue;
+                        continue; 
 
                     var holdInfo = JsonSerializer.Deserialize<SeatHoldInfo>(holdJson);
 
@@ -217,11 +256,11 @@ return new { statusCode = 500, message = "Dữ liệu không hợp lệ" };
                 if (releasedSeats.Any())
                 {
                     await _hub.Clients.Group($"Flight_{idLichBay}")
-                        .SendAsync("ReceiveGheNgoiUpdate", new
+                        .SendAsync("ReceiveGheNgoiUpdate", new  
                         {
                             Seats = releasedSeats,
                             IdTrangThai = 1,
-                            UserId = idTaiKhoan,
+                            UserId = idTaiKhoan,  
                             TimeRemaining = 0
                         });
                 }
@@ -245,60 +284,90 @@ return new { statusCode = 500, message = "Dữ liệu không hợp lệ" };
                 };
             }
         }
-
-### CONTROLLER
-
-public async Task<IActionResult> DanhSachGheTheoChuyenBay([FromQuery] long idLichBay, [FromQuery] long idTuyenBay)
-{
-var result = await \_services.DanhSachGheTheoChuyenBay(idLichBay, idTuyenBay);
-
-            return Ok(result);
-        }
-        [HttpPost("SetTrangThaiGheNgoi")]
-        public async Task<IActionResult> SetTrangThaiGheNgoi([FromBody] SetGheNgoiModel setGhe)
+        public async Task<dynamic> HuyVe(long idDatVe, string lyDoHuy)
         {
-            // Lấy thông tin user từ JWT
-            var idTaiKhoanClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (idTaiKhoanClaim == null || !long.TryParse(idTaiKhoanClaim.Value, out long idTaiKhoan))
+            if (idDatVe <= 0)
+                return new { statusCode = 400, message = "Dữ liệu không hợp lệ" };
+
+            try
             {
-                return Unauthorized(new { statusCode = 401, message = "Người dùng chưa đăng nhập hoặc token không hợp lệ" });
+                var datVe = await _context.DatVes.FindAsync(idDatVe);
+                if (datVe == null)
+                    return new { statusCode = 404, message = "Đặt vé không tồn tại" };
+
+                if (datVe.TrangThai == "đã hủy")
+                    return new { statusCode = 400, message = "Vé đã được hủy trước đó" };
+
+                if (datVe.TrangThai == "đã checkin")
+                    return new { statusCode = 400, message = "Vé đã check-in, không thể hủy" };
+
+                var lichBay = await _context.LichBays.FindAsync(datVe.LichBayId);
+                if (lichBay == null)
+                    return new { statusCode = 404, message = "Lịch bay không tồn tại" };
+
+                // Check time — UTC vs UTC
+                if (lichBay.ThoiGianOsanBayDiUtc <= DateTime.UtcNow.AddHours(24))
+                    return new { statusCode = 400, message = "Còn dưới 24h trước giờ bay, không thể hủy vé" };
+
+                datVe.TrangThai = "đã hủy";
+                datVe.LyDoHuy = lyDoHuy;
+                datVe.NgayHuy = DateTime.UtcNow;
+                //_context.DatVes.Update(datVe);
+
+                var datVeChiTiet = await _context.ChiTietDatVes.Where(r => r.IdDatVe == idDatVe).ToListAsync();
+
+                foreach (var item in datVeChiTiet)
+                {
+                    var ghe = await _context.GheNgoiLichBays.Where(c => c.IdLichBay == lichBay.Id && c.IdGheNgoi == item.IdGheNgoi).FirstOrDefaultAsync();
+                    if (ghe != null)
+                    {
+                        ghe.TrangThai = 0;
+                        _context.GheNgoiLichBays.Update(ghe);
+
+                        // Redis update
+                        string redisKey = $"FlightSeats:{ghe.IdLichBay}";
+                        var seatJson = await _redis.Db.HashGetAsync(redisKey, ghe.IdGheNgoi.ToString());
+                        if (!seatJson.IsNullOrEmpty)
+                        {
+                            var seat = JsonSerializer.Deserialize<GheNgoiDto>(seatJson);
+                            seat.IdTrangThai = 0;
+                            await _redis.Db.HashSetAsync(redisKey, ghe.Id.ToString(), JsonSerializer.Serialize(seat));
+                        }
+
+                        await _hub.Clients.Group($"Flight_{ghe.IdLichBay}")
+                            .SendAsync("ReceiveGheNgoiUpdate", new
+                            {
+                                Seats = new List<long> { ghe.Id },
+                                IdTrangThai = 0,
+                                UserId = 0,
+                                TimeRemaining = 0
+                            });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                return new { statusCode = 200, message = "Hủy vé thành công" };
             }
-            var result = await _services.SetGheNgoi(setGhe.idGheNgoi, idTaiKhoan, setGhe.idLichBay);
-            return Ok(result);
-        }
-        [HttpPost("ReleaseSeat")]
-        public async Task<IActionResult> ReleaseSeat([FromBody] SetGheNgoiModel model)
-        {
-            // Lấy thông tin user từ JWT
-            var idTaiKhoanClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (idTaiKhoanClaim == null || !long.TryParse(idTaiKhoanClaim.Value, out long idTaiKhoan))
+            catch (Exception ex)
             {
-                return Unauthorized(new { statusCode = 401, message = "Người dùng chưa đăng nhập hoặc token không hợp lệ" });
+                return new { statusCode = 500, message = "Có lỗi xảy ra khi hủy vé", error = ex.Message };
             }
-            var result = await _services.ReleaseSeat(
-                model.idGheNgoi, idTaiKhoan, model.idLichBay);
-
-            return Ok(result);
         }
-
-### KHÁC
-
-## HUB
-
+### HUB 
 public class NotificationHub:Hub
-{
-public async Task JoinGroup(string groupName)
-{
-await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-}
-public async Task LeaveGroup(string groupName)
-{
-await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-}
+        {
+            public async Task JoinGroup(string groupName)
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+            }
+            public async Task LeaveGroup(string groupName)
+            {
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+            }
 
             public override Task OnDisconnectedAsync(Exception? exception)
             {
                 // nếu cần cleanup
                 return base.OnDisconnectedAsync(exception);
             }
-        }
+        } 
