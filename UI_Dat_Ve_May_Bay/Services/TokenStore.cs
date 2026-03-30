@@ -7,6 +7,7 @@ namespace UI_Dat_Ve_May_Bay.Services
     public class TokenStore
     {
         private readonly string _filePath;
+        private readonly string _accountTypePath;
 
         public TokenStore(string appName = "UI_Dat_Ve_May_Bay")
         {
@@ -16,6 +17,7 @@ namespace UI_Dat_Ve_May_Bay.Services
             );
             Directory.CreateDirectory(dir);
             _filePath = Path.Combine(dir, "jwt.txt");
+            _accountTypePath = Path.Combine(dir, "account_type.txt");
         }
 
         public string? Load()
@@ -41,9 +43,31 @@ namespace UI_Dat_Ve_May_Bay.Services
             File.WriteAllText(_filePath, token?.Trim() ?? "");
         }
 
+        public int? LoadAccountType()
+        {
+            if (!File.Exists(_accountTypePath))
+                return null;
+
+            var raw = File.ReadAllText(_accountTypePath).Trim();
+            return int.TryParse(raw, out var value) ? value : null;
+        }
+
+        public void SaveAccountType(int? accountType)
+        {
+            if (!accountType.HasValue)
+            {
+                if (File.Exists(_accountTypePath))
+                    File.Delete(_accountTypePath);
+                return;
+            }
+
+            File.WriteAllText(_accountTypePath, accountType.Value.ToString());
+        }
+
         public void Clear()
         {
             if (File.Exists(_filePath)) File.Delete(_filePath);
+            if (File.Exists(_accountTypePath)) File.Delete(_accountTypePath);
         }
 
         public string GetFilePath() => _filePath;
