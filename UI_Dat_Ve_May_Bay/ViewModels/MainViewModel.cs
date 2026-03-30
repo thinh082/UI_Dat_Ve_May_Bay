@@ -1,7 +1,9 @@
 using System.Windows;
 using UI_Dat_Ve_May_Bay.Api;
+using UI_Dat_Ve_May_Bay.Api.Admin;
 using UI_Dat_Ve_May_Bay.Core;
 using UI_Dat_Ve_May_Bay.Services;
+using UI_Dat_Ve_May_Bay.ViewModels.Admin;
 
 namespace UI_Dat_Ve_May_Bay.ViewModels
 {
@@ -20,6 +22,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         private VoucherViewModel? _voucherVM;
         private AuthViewModel? _authVM;
         private ProfileViewModel? _profileVM;
+        private AdminMainViewModel? _adminMainVM;
 
         private FlightViewModel? _flightVM;
         private BookingViewModel? _bookingVM;
@@ -31,7 +34,11 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             set
             {
                 if (SetProperty(ref _currentViewModel, value))
+                {
                     OnPropertyChanged(nameof(IsAppScreen));
+                    OnPropertyChanged(nameof(IsUserShell));
+                    OnPropertyChanged(nameof(IsAdminShell));
+                }
             }
         }
 
@@ -39,6 +46,8 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
         public string CurrentTabName { get => _currentTabName; set => SetProperty(ref _currentTabName, value); }
 
         public bool IsAppScreen => _authVM != null && CurrentViewModel != _authVM;
+        public bool IsUserShell => IsAppScreen && CurrentViewModel is not AdminMainViewModel;
+        public bool IsAdminShell => CurrentViewModel is AdminMainViewModel;
 
         public RelayCommand GoHomeCommand { get; }
         public RelayCommand GoNotificationCommand { get; }
@@ -72,8 +81,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
                 if (!string.IsNullOrWhiteSpace(_apiClient.Token))
                 {
-                    CurrentTabName = "Home";
-                    CurrentViewModel = _homeVM;
+                    NavigateAfterStartup();
                 }
                 else
                 {
@@ -151,6 +159,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 _bookingVM = null;
                 _myFlightsVM = null;
                 _profileVM = null;
+                _adminMainVM = null;
 
                 CurrentTabName = "Đăng nhập";
                 CurrentViewModel = _authVM ?? new object();
@@ -169,6 +178,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 _bookingVM = null;
                 _myFlightsVM = null;
                 _profileVM = null;
+                _adminMainVM = null;
 
                 MessageBox.Show("Đã xóa token. App sẽ quay về đăng nhập.", "Token cleared",
                     MessageBoxButton.OK, MessageBoxImage.Information);
@@ -236,6 +246,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             _notiVM = null;
             _voucherVM = null;
             _profileVM = null;
+            _adminMainVM = null;
 
             ReloadTokenToApiClient();
 
@@ -246,8 +257,57 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 return;
             }
 
+            NavigateAfterLogin();
+        }
+
+        private void NavigateAfterLogin()
+        {
+            var loaiTaiKhoan = _authVM?.LoaiTaiKhoanDangNhap ?? _tokenStore.LoadAccountType();
+
+            if (loaiTaiKhoan == 3)
+            {
+                _adminMainVM ??= new AdminMainViewModel(_apiClient, PerformLogout);
+                CurrentTabName = "Admin";
+                CurrentViewModel = _adminMainVM;
+                return;
+            }
+
             CurrentTabName = "Home";
             CurrentViewModel = _homeVM ?? new object();
+        }
+
+        private void NavigateAfterStartup()
+        {
+            var loaiTaiKhoan = _tokenStore.LoadAccountType();
+
+            if (loaiTaiKhoan == 3)
+            {
+                _adminMainVM ??= new AdminMainViewModel(_apiClient, PerformLogout);
+                CurrentTabName = "Admin";
+                CurrentViewModel = _adminMainVM;
+                return;
+            }
+
+            CurrentTabName = "Home";
+            CurrentViewModel = _homeVM ?? new object();
+        }
+
+        private void PerformLogout()
+        {
+            _tokenStore.Clear();
+            _apiClient.Token = null;
+            _notiVM = null;
+            _voucherVM = null;
+            _flightVM = null;
+            _bookingVM = null;
+            _profileVM = null;
+            _adminMainVM = null;
+
+            CurrentTabName = "Đăng nhập";
+            CurrentViewModel = _authVM ?? new object();
+
+            MessageBox.Show("Đã đăng xuất thành công.", "Đăng xuất",
+                MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private bool EnsureLoggedIn(bool showMessage = true)
