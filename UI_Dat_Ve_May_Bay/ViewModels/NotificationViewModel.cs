@@ -142,8 +142,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
             var id = Selected.Id;
 
-            if (MessageBox.Show("Xóa thông báo này?", "Xác nhận",
-                    MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            if (!UI_Dat_Ve_May_Bay.Services.DialogService.ShowConfirm("Xóa thông báo này?", "Xác nhận"))
                 return;
 
             try

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -15,7 +15,7 @@ namespace UI_Dat_Ve_May_Bay.Api
             _apiClient = apiClient;
         }
 
-        public async Task<(bool ok, string message, string? token)> LoginAsync(string taiKhoan, string matKhau)
+        public async Task<(bool ok, string message, string? token, int? loaiTaiKhoan)> LoginAsync(string taiKhoan, string matKhau)
         {
             var url = "/api/XacThucTaiKhoan/dangnhap";
 
@@ -33,16 +33,17 @@ namespace UI_Dat_Ve_May_Bay.Api
 
             if (!res.IsSuccessStatusCode)
             {
-                return (false, $"HTTP {(int)res.StatusCode}: {TryReadMessage(json) ?? "Đăng nhập thất bại"}", null);
+                return (false, $"HTTP {(int)res.StatusCode}: {TryReadMessage(json) ?? "Đăng nhập thất bại"}", null, null);
             }
 
             var token = ExtractToken(json);
+            var loaiTaiKhoan = ExtractAccountType(json);
             var msg = TryReadMessage(json) ?? "Đăng nhập thành công";
 
             if (string.IsNullOrWhiteSpace(token))
-                return (false, msg + " (Không tìm thấy token trong response)", null);
+                return (false, msg + " (Không tìm thấy token trong response)", null, null);
 
-            return (true, msg, token);
+            return (true, msg, token, loaiTaiKhoan);
         }
 
         public async Task<(bool ok, string message)> RegisterAsync(object registerBody)
@@ -203,6 +204,29 @@ namespace UI_Dat_Ve_May_Bay.Api
             }
             catch { }
 
+            return null;
+        }
+
+        private static int? ExtractAccountType(string json)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                if (root.ValueKind == JsonValueKind.Object)
+                {
+                    if (root.TryGetProperty("loaiTaiKhoan", out var l) && l.ValueKind == JsonValueKind.Number) return l.GetInt32();
+                    if (root.TryGetProperty("LoaiTaiKhoan", out var l2) && l2.ValueKind == JsonValueKind.Number) return l2.GetInt32();
+
+                    if (root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Object)
+                    {
+                        if (data.TryGetProperty("loaiTaiKhoan", out var dl) && dl.ValueKind == JsonValueKind.Number) return dl.GetInt32();
+                        if (data.TryGetProperty("LoaiTaiKhoan", out var dl2) && dl2.ValueKind == JsonValueKind.Number) return dl2.GetInt32();
+                    }
+                }
+            }
+            catch { }
             return null;
         }
     }

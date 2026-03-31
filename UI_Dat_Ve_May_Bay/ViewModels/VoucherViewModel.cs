@@ -109,7 +109,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 Status = "Đang tải tất cả voucher...";
                 Vouchers.Clear();
 
-                var list = await _voucherApi.GetDanhSachPhieuGiamGiaAsync(); // ✅ API ALL
+                var list = await _voucherApi.LayToanBoPhieuGiamGiaAsync(); // ✅ Đổi sang gọi LayToanBoPhieuGiamGia theo yêu cầu
                 _cachedVouchers.Clear();
                 foreach (var v in list)
                 {
@@ -128,7 +128,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             {
                 if (string.IsNullOrWhiteSpace(SearchCode))
                 {
-                    MessageBox.Show("Nhập mã giảm giá để tìm.", "Thiếu dữ liệu", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    UI_Dat_Ve_May_Bay.Services.DialogService.ShowWarning("Nhập mã giảm giá để tìm.", "Thiếu dữ liệu");
                     return;
                 }
 
@@ -164,21 +164,21 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             {
                 if (SelectedVoucher == null)
                 {
-                    MessageBox.Show("Chọn 1 voucher trước.", "Thiếu dữ liệu", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    UI_Dat_Ve_May_Bay.Services.DialogService.ShowWarning("Chọn 1 voucher trước.", "Thiếu dữ liệu");
                     return;
                 }
 
                 var id = SelectedVoucher.Id; // ✅ dùng Id theo JSON
                 if (id <= 0)
                 {
-                    MessageBox.Show("Voucher không có Id hợp lệ.", "Lỗi dữ liệu", MessageBoxButton.OK, MessageBoxImage.Error);
+                    UI_Dat_Ve_May_Bay.Services.DialogService.ShowError("Voucher không có Id hợp lệ.", "Lỗi dữ liệu");
                     return;
                 }
 
                 Status = "Đang áp dụng voucher...";
                 var res = await _voucherApi.ApplyVoucherAsync(id);
 
-                MessageBox.Show(res.Message ?? "Apply voucher OK", "Kết quả", MessageBoxButton.OK, MessageBoxImage.Information);
+                UI_Dat_Ve_May_Bay.Services.DialogService.ShowInfo(res.Message ?? "Apply voucher OK", "Kết quả");
 
                 // Sau khi apply, thường hợp lý là load lại voucher của tôi
                 await LoadMyVouchersAsync();

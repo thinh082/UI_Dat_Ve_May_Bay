@@ -501,7 +501,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 var doc = await SendJsonAsync(HttpMethod.Post, "/api/KhachHang/CapNhatThongTin", body);
                 Status = GetMessage(doc.RootElement, "Cập nhật thông tin cơ bản thành công");
                 if (string.IsNullOrWhiteSpace(Status)) Status = "Cập nhật thông tin cơ bản thành công";
-                MessageBox.Show(Status, "Hồ sơ", MessageBoxButton.OK, MessageBoxImage.Information);
+                UI_Dat_Ve_May_Bay.Services.DialogService.ShowInfo(Status, "Hồ sơ");
                 await LoadBasicAsync();
             });
         }
@@ -527,7 +527,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 var doc = await SendJsonAsync(HttpMethod.Post, "/api/KhachHang/CapNhatCCCD", body);
                 Status = GetMessage(doc.RootElement, "Cập nhật CCCD thành công");
                 if (string.IsNullOrWhiteSpace(Status)) Status = "Cập nhật CCCD thành công";
-                MessageBox.Show(Status, "CCCD", MessageBoxButton.OK, MessageBoxImage.Information);
+                UI_Dat_Ve_May_Bay.Services.DialogService.ShowInfo(Status, "CCCD");
                 await TryLoadCccdAsync();
             });
         }
@@ -560,7 +560,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 var doc = await SendJsonAsync(HttpMethod.Post, "/api/KhachHang/CapNhatPassport", body);
                 Status = GetMessage(doc.RootElement, "Cập nhật Passport thành công");
                 if (string.IsNullOrWhiteSpace(Status)) Status = "Cập nhật Passport thành công";
-                MessageBox.Show(Status, "Passport", MessageBoxButton.OK, MessageBoxImage.Information);
+                UI_Dat_Ve_May_Bay.Services.DialogService.ShowInfo(Status, "Passport");
                 await TryLoadPassportAsync();
             });
         }
@@ -580,7 +580,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             {
                 Error = ex.Message;
                 Status = "Có lỗi xảy ra";
-                MessageBox.Show(ex.Message, "Thông báo lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                UI_Dat_Ve_May_Bay.Services.DialogService.ShowError(ex.Message, "Thông báo lỗi");
             }
             finally
             {

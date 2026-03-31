@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -41,8 +41,7 @@ namespace UI_Dat_Ve_May_Bay.Core
 
         public static bool ConfirmDelete(string message)
         {
-            var result = MessageBox.Show(message, "Xác nhận thao tác", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            return result == MessageBoxResult.Yes;
+            return UI_Dat_Ve_May_Bay.Services.DialogService.ShowConfirm(message, "Xác nhận thao tác");
         }
 
         private static void Raise(AdminToastMessage toast)

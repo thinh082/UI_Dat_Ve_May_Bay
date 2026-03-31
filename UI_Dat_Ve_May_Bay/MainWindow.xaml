@@ -5,9 +5,10 @@
         xmlns:vmAdmin="clr-namespace:UI_Dat_Ve_May_Bay.ViewModels.Admin"
         xmlns:views="clr-namespace:UI_Dat_Ve_May_Bay.Views"
         xmlns:viewsAdmin="clr-namespace:UI_Dat_Ve_May_Bay.Views.Admin"
-        Title="UI Đặt Vé Máy Bay" Height="800" Width="1200"
+Title="UI Đặt Vé Máy Bay" Height="800" Width="1200"
         WindowStartupLocation="CenterScreen"
-        Background="#F8FAFC">
+        Background="#F8FAFC"
+        Language="vi-VN">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>

@@ -91,11 +91,9 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show(
+                DialogService.ShowError(
                     $"Lỗi khởi tạo UI: {ex.Message}\n\nHệ thống sẽ chuyển về màn hình đăng nhập.",
-                    "Init error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    "Init error");
 
                 _authVM ??= new AuthViewModel(new AuthApi(_apiClient), _tokenStore, _apiClient, onLoginSuccess: NavigateHome);
                 CurrentTabName = "Đăng nhập";
@@ -164,8 +162,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 CurrentTabName = "Đăng nhập";
                 CurrentViewModel = _authVM ?? new object();
 
-                MessageBox.Show("Đã đăng xuất thành công.", "Đăng xuất",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogService.ShowSuccess("Đã đăng xuất thành công.", "Đăng xuất");
             });
 
             ClearTokenCommand = new RelayCommand(() =>
@@ -180,8 +177,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 _profileVM = null;
                 _adminMainVM = null;
 
-                MessageBox.Show("Đã xóa token. App sẽ quay về đăng nhập.", "Token cleared",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogService.ShowInfo("Đã xóa token. App sẽ quay về đăng nhập.", "Token cleared");
 
                 CurrentTabName = "Đăng nhập";
                 CurrentViewModel = _authVM ?? new object();
@@ -189,8 +185,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
             ShowTokenPathCommand = new RelayCommand(() =>
             {
-                MessageBox.Show(_tokenStore.GetFilePath(), "Token file path",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogService.ShowInfo(_tokenStore.GetFilePath(), "Token file path");
             });
         }
 
@@ -306,8 +301,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             CurrentTabName = "Đăng nhập";
             CurrentViewModel = _authVM ?? new object();
 
-            MessageBox.Show("Đã đăng xuất thành công.", "Đăng xuất",
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            DialogService.ShowSuccess("Đã đăng xuất thành công.", "Đăng xuất");
         }
 
         private bool EnsureLoggedIn(bool showMessage = true)
@@ -321,11 +315,9 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
             if (showMessage)
             {
-                MessageBox.Show(
+                DialogService.ShowWarning(
                     "Bạn chưa đăng nhập (chưa có token). Hệ thống sẽ chuyển về đăng nhập.",
-                    "Thiếu token",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
+                    "Thiếu token"
                 );
             }
 

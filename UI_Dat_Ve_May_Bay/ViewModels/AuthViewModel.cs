@@ -230,7 +230,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
             {
 
-                var (ok, msg, token) = await _authApi.LoginAsync(LoginTaiKhoan?.Trim() ?? "", LoginMatKhau ?? "");
+                var (ok, msg, token, loaiTaiKhoan) = await _authApi.LoginAsync(LoginTaiKhoan?.Trim() ?? "", LoginMatKhau ?? "");
 
                 StatusMessage = msg;
 
@@ -243,6 +243,8 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
 
                 _tokenStore.Save(token);
+
+                _tokenStore.SaveAccountType(loaiTaiKhoan);
 
                 _apiClient.Token = token;
 
@@ -567,7 +569,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 StatusMessage = msg;
                 if (ok)
                 {
-                    System.Windows.MessageBox.Show("Đăng ký tài khoản thành công!\nVui lòng chuyển sang trang Đăng nhập để tiếp tục.", "Thành công", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                    UI_Dat_Ve_May_Bay.Services.DialogService.ShowSuccess("Đăng ký tài khoản thành công!\nVui lòng chuyển sang trang Đăng nhập để tiếp tục.", "Thành công");
                     ResetRegisterFlow();
                 }
             }
@@ -866,7 +868,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                 StatusMessage = msg;
                 if (ok)
                 {
-                    System.Windows.MessageBox.Show("Đổi mật khẩu thành công!\nVui lòng chuyển sang trang Đăng nhập để tiếp tục.", "Thành công", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                    UI_Dat_Ve_May_Bay.Services.DialogService.ShowSuccess("Đổi mật khẩu thành công!\nVui lòng chuyển sang trang Đăng nhập để tiếp tục.", "Thành công");
                     ResetForgotFlow();
                 }
 

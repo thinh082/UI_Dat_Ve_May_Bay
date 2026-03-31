@@ -15,6 +15,7 @@ using UI_Dat_Ve_May_Bay.Api;
 using UI_Dat_Ve_May_Bay.Services;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
+using System.Windows;
 
 namespace UI_Dat_Ve_May_Bay.ViewModels
 {
@@ -935,7 +936,9 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
                     return;
                 }
 
-                Info = string.IsNullOrWhiteSpace(bizMsg) ? "Đặt vé thành công." : bizMsg;
+                var finalMsg = string.IsNullOrWhiteSpace(bizMsg) ? "Đặt vé thành công." : bizMsg;
+                Info = finalMsg;
+                DialogService.ShowSuccess(finalMsg, "Thông báo");
 
                 // Save booked seats locally
                 foreach(var id in _heldSeatIds) _myBookedSeatIds.Add(id);
@@ -948,6 +951,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
             catch (Exception ex)
             {
                 Error = ex.Message;
+                DialogService.ShowError($"Đặt vé thất bại: {ex.Message}", "Lỗi");
             }
             finally
             {

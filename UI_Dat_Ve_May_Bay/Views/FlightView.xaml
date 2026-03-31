@@ -5,7 +5,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:core="clr-namespace:UI_Dat_Ve_May_Bay.Core"
              mc:Ignorable="d"
-             Background="#FFF8FAFC">
+             Background="#FFF8FAFC"
+             Language="vi-VN">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
@@ -260,12 +261,12 @@
                             <TextBlock Text="Giá từ:" VerticalAlignment="Center" Foreground="White"
                                        Margin="0,0,8,0" FontWeight="SemiBold" FontSize="13" Opacity="0.9"/>
                             <Border Background="White" CornerRadius="6" Padding="0" Height="34" Width="90" Margin="0,0,6,0">
-                                <TextBox Text="{Binding GiaMin}" BorderThickness="0" Background="Transparent"
+                                <TextBox Text="{Binding GiaMin, StringFormat='{}{0:N0}', UpdateSourceTrigger=LostFocus}" BorderThickness="0" Background="Transparent"
                                          VerticalContentAlignment="Center" Padding="8,0" FontSize="13"/>
                             </Border>
                             <TextBlock Text="—" VerticalAlignment="Center" Foreground="White" Margin="0,0,6,0" FontWeight="Bold"/>
                             <Border Background="White" CornerRadius="6" Padding="0" Height="34" Width="110" Margin="0,0,16,0">
-                                <TextBox Text="{Binding GiaMax}" BorderThickness="0" Background="Transparent"
+                                <TextBox Text="{Binding GiaMax, StringFormat='{}{0:N0}', UpdateSourceTrigger=LostFocus}" BorderThickness="0" Background="Transparent"
                                          VerticalContentAlignment="Center" Padding="8,0" FontSize="13"/>
                             </Border>
                         </StackPanel>
