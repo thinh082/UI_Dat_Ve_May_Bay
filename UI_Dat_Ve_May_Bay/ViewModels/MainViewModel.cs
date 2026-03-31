@@ -262,7 +262,7 @@ namespace UI_Dat_Ve_May_Bay.ViewModels
 
         private void NavigateAfterLogin()
         {
-            var loaiTaiKhoan = _authVM?.LoaiTaiKhoanDangNhap ?? _tokenStore.LoadAccountType();
+            var loaiTaiKhoan = _tokenStore.LoadAccountType();
 
             if (loaiTaiKhoan == 3)
             {

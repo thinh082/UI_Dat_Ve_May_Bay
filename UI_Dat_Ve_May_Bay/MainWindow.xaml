@@ -1,11 +1,11 @@
-﻿<Window x:Class="UI_Dat_Ve_May_Bay.MainWindow"
+<Window x:Class="UI_Dat_Ve_May_Bay.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:UI_Dat_Ve_May_Bay.ViewModels"
         xmlns:vmAdmin="clr-namespace:UI_Dat_Ve_May_Bay.ViewModels.Admin"
         xmlns:views="clr-namespace:UI_Dat_Ve_May_Bay.Views"
         xmlns:viewsAdmin="clr-namespace:UI_Dat_Ve_May_Bay.Views.Admin"
-        Title="UI Äáº·t VĂ© MĂ¡y Bay" Height="800" Width="1200"
+        Title="UI Đặt Vé Máy Bay" Height="800" Width="1200"
         WindowStartupLocation="CenterScreen"
         Background="#F8FAFC">
 
@@ -85,25 +85,25 @@
                 <StackPanel Grid.Row="0" VerticalAlignment="Center" Margin="24,0">
                     <Grid>
                         <Ellipse Fill="{StaticResource VnaGold}" Width="40" Height="40" HorizontalAlignment="Left" Opacity="0.2"/>
-                        <TextBlock Text="âœˆ" FontSize="28" Foreground="{StaticResource VnaGold}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                        <TextBlock Text="✈" FontSize="28" Foreground="{StaticResource VnaGold}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                     </Grid>
-                    <TextBlock Text="Äáº·t vĂ©" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,8,0,0" />
-                    <TextBlock Text="MĂ¡y Bay" FontSize="9" FontWeight="SemiBold" Foreground="#BEE3F8" Opacity="0.7" Margin="2,0,0,0" />
+                    <TextBlock Text="Đặt vé" FontSize="16" FontWeight="Bold" Foreground="White" Margin="0,8,0,0" />
+                    <TextBlock Text="Máy Bay" FontSize="9" FontWeight="SemiBold" Foreground="#BEE3F8" Opacity="0.7" Margin="2,0,0,0" />
                 </StackPanel>
 
                 <!-- Nav Buttons -->
                 <StackPanel Grid.Row="1" Margin="0,10">
                     <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding GoHomeCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="đŸ " FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
-                            <TextBlock Text="Trang chá»§"/>
+                            <TextBlock Text="🏠" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Trang chủ"/>
                         </StackPanel>
                     </Button>
 
                     <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding GoFlightCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="âœˆ" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
-                            <TextBlock Text="TĂ¬m chuyáº¿n bay"/>
+                            <TextBlock Text="✈" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Tìm chuyến bay"/>
                         </StackPanel>
                     </Button>
 
@@ -116,15 +116,15 @@
 
                     <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding GoNotificationCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="đŸ””" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
-                            <TextBlock Text="ThĂ´ng bĂ¡o"/>
+                            <TextBlock Text="🔔" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Thông báo"/>
                         </StackPanel>
                     </Button>
 
                     <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding GoVoucherCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="â­" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
-                            <TextBlock Text="Æ¯u Ä‘Ă£i &amp; Voucher"/>
+                            <TextBlock Text="⭐" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Ưu đãi &amp; Voucher"/>
                         </StackPanel>
                     </Button>
 
@@ -132,8 +132,8 @@
 
                     <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding GoProfileCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="đŸ‘¤" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
-                            <TextBlock Text="Há»“ sÆ¡ cĂ¡ nhĂ¢n"/>
+                            <TextBlock Text="👤" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Hồ sơ cá nhân"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -142,8 +142,8 @@
                 <StackPanel Grid.Row="2" Margin="0,0,0,32">
                     <Button Style="{StaticResource SideNavButtonStyle}" Command="{Binding LogoutCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="đŸª" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
-                            <TextBlock Text="ÄÄƒng xuáº¥t"/>
+                            <TextBlock Text="🚫" FontSize="18" Margin="0,0,16,0" Width="20" TextAlignment="Center"/>
+                            <TextBlock Text="Đăng xuất"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -167,7 +167,7 @@
                 <DockPanel Margin="32,0">
                     <StackPanel VerticalAlignment="Center" DockPanel.Dock="Left">
                         <TextBlock Text="{Binding CurrentTabName}" FontSize="22" FontWeight="Bold" Foreground="#111827"/>
-                        <TextBlock Text="ChĂ o má»«ng báº¡n quay trá»Ÿ láº¡i há»‡ thá»‘ng" FontSize="11" Foreground="#9CA3AF" Margin="0,2,0,0"/>
+                        <TextBlock Text="Chào mừng bạn quay trở lại hệ thống" FontSize="11" Foreground="#9CA3AF" Margin="0,2,0,0"/>
                     </StackPanel>
 
                     <!-- Profile Circle -->
